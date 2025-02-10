@@ -42,6 +42,13 @@ const ABSection = () => {
       yoyo: true,
       stagger: 0.3,
     });
+
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 3 });
+    tl.to(boxes, {
+      rotation: 360,
+      duration: 1.5,
+      ease: "power2.inOut",
+    });
   }, []);
 
   const handleMouseMove = (e: any) => {
@@ -80,7 +87,7 @@ const ABSection = () => {
   };
 
   return (
-    <section className="w-full min-h-screen flex flex-col py-20 md:max-w-7xl mx-auto md:px-10 px-5 relative">
+    <section className="w-full min-h-screen flex flex-col py-10 sm:py-20 md:max-w-7xl mx-auto md:px-10 px-5 relative">
       <div
         className="flex flex-col items-center text-center gap-2 headline-container w-fit mx-auto dark:text-white "
         ref={headlineRef}
@@ -89,26 +96,37 @@ const ABSection = () => {
       >
         <h1 className="text-black relative dark:text-white text-[16px] md:text-[20px] font-medium">
           Explore worlds, beloved characters, and stories
-          <div className="bg-transparent absolute left-0 top-0 -translate-x-[calc(100%+15px)] dark:bg-white w-[50px] h-[50px] rounded-full animated-box">
+          <div className="bg-transparent absolute hidden sm:block left-0 top-0 -translate-x-[calc(100%+15px)] dark:bg-white w-[50px] h-[50px] rounded-full">
             <Image
               src="/img/kuro02.svg"
               alt="ghibli-logo"
-              className="translate-y-1"
+              className="translate-y-1  animated-box"
               width={50}
               height={50}
             />
+            <div className="absolute hidden top-0 right-full sm:flex items-center -translate-x-4 justify-center w-fit px-2 pr-3 py-1 bg-white border-2 border-black rounded-xl">
+              <p className="truncate text-black">Wass new</p>
+              <div className="absolute right-0 top-1/2 translate-x-[10.5px] -translate-y-1/2 w-5 h-5 bg-white border-l-2 border-b-2 border-black rotate-[225deg]"></div>
+            </div>
           </div>
         </h1>
+
         <h1 className="md:text-[4rem] relative text-[2.5rem] font-bold leading-tight headline">
           Step Into the <br /> Ghibli Universe
-          <div className="bg-transparent absolute right-0 bottom-0 translate-x-[calc(100%+15px)] -translate-y-1/4 dark:bg-white w-[50px] h-[50px] rounded-full animated-box">
+          <div className="bg-transparent absolute hidden sm:block right-0 bottom-0 translate-x-[calc(100%+15px)] -translate-y-1/4 dark:bg-white w-[50px] h-[50px] rounded-full">
             <Image
               src="/img/kuro02.svg"
               alt="ghibli-logo"
-              className="translate-y-1"
+              className="translate-y-1  animated-box"
               width={50}
               height={50}
             />
+            <div className="absolute top-0 left-full flex items-center translate-x-4 justify-center w-fit px-2 pl-3 py-2 bg-white border-2 border-black rounded-xl">
+              <p className="truncate text-[16px] md:text-[20px] font-medium text-black">
+                Let explore
+              </p>
+              <div className="absolute left-0 top-1/2 -translate-x-[10.5px] -translate-y-1/2 w-5 h-5 bg-white border-l-2 border-b-2 border-black rotate-[45deg]"></div>
+            </div>
           </div>
         </h1>
       </div>
