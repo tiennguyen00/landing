@@ -2,7 +2,7 @@
 
 import { useGSAP } from "@gsap/react";
 import Image from "next/image";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import { Button } from "./ui/button";
@@ -106,6 +106,16 @@ const HeroSection = () => {
     });
   });
 
+  useEffect(() => {
+    gsap.to("#banner-drop", {
+      opacity: 1,
+    });
+
+    gsap.to("#banner", {
+      opacity: 1,
+    });
+  }, []);
+
   return (
     <section
       className={`w-full min-h-screen relative flex items-end md:items-center overflow-hidden`}
@@ -117,17 +127,18 @@ const HeroSection = () => {
       {/* IMAGE ON MD LARGER */}
       <div className="absolute size-full animation-clip md:block hidden z-10">
         <Image
+          id="banner"
           src="/img/banner.webp"
           alt=""
           width={1000}
           height={1000}
           sizes="100vw"
-          className="absolute left-0 top-0 size-full object-cover"
+          className="absolute left-0 top-0 opacity-0 size-full object-cover"
         />
 
         <div className="absolute top-40 md:left-12 lg:left-20">
           <h1 className="text-black md:text-[3.5rem] lg:text-[5rem] font-bold leading-[1]">
-            Welcome to <br /> the cat's world
+            Welcome to <br /> the cat&apos;s world
           </h1>
         </div>
       </div>
@@ -145,7 +156,7 @@ const HeroSection = () => {
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full">
           <h1 className="text-white text-[2.5rem] font-bold leading-[1] text-center">
-            Welcome to <br /> the cat's world
+            Welcome to <br /> the cat&apos;s world
           </h1>
         </div>
       </div>
@@ -194,7 +205,10 @@ const HeroSection = () => {
         />
       </div>
 
-      <div className="absolute w-full h-full md:block hidden">
+      <div
+        id="banner-drop"
+        className="absolute w-full opacity-0 h-full md:block hidden"
+      >
         <Image
           src="/img/banner-cropped.webp"
           alt=""
