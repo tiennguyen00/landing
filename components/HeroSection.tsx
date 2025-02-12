@@ -61,11 +61,12 @@ const HeroSection = () => {
         gsap.from(".animation-clip", {
           scrollTrigger: {
             trigger: "#clip",
-            start: "center center",
-            end: "+=1000 center",
+            start: "top top",
+            end: "+=100% top",
             scrub: 0.5,
             pin: true,
             pinSpacing: true,
+            markers: true,
           },
           clipPath: "polygon(64% 90%, 61% 32%, 86% 15%, 93% 49%)",
           transformPerspective: 1000,
@@ -144,7 +145,7 @@ const HeroSection = () => {
                 "0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px black, 0 0 45px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.5)",
             }}
           >
-            Welcome to <br /> the cat&apos;s world
+            Welcome to <br /> magical world
           </h1>
         </div>
       </div>
@@ -162,7 +163,7 @@ const HeroSection = () => {
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full">
           <h1 className="text-white text-[2.5rem] font-bold leading-[1] text-center">
-            Welcome to <br /> the cat&apos;s world
+            Welcome to <br /> magical world
           </h1>
         </div>
       </div>

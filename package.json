@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fullpage/react-fullpage": "^0.1.48",
     "@gsap/react": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@react-three/drei": "^9.121.4",
