@@ -19,7 +19,7 @@ export const simulationFragmentShader = `
   void main() {
     vec2 uv = vUv;
     if(frame == 0) {
-      glFragColor = vec4(0.);
+      gl_FragColor = vec4(0.0);
       return;
     }
 
@@ -40,15 +40,22 @@ export const simulationFragmentShader = `
     if (uv.y >= 1.0 - texelSize.y) p_up = p_down;
 
     // Enhanced wave equation matching ShaderToy
+    // Apply horizontal wave function
     pVel += delta * (-2.0 * pressure + p_right + p_left) / 4.0;
+    // Apply vertical wave function (these could just as easily have been one line)
     pVel += delta * (-2.0 * pressure + p_up + p_down) / 4.0;
 
+    // Change pressure by pressure velocity
     pressure += delta * pVel;
 
+    // "Spring" motion. This makes the waves look more like water waves and less like sound waves.
     pVel -= 0.005 * delta * pressure;
 
+    // Velocity damping so things eventually calm down
     pVel *= 1.0 - 0.002 * delta;
-    pressure *= 0.999;
+
+    // Pressure damping to prevent it from building up forever.
+    pressure *= 0.980;
 
     vec2 mouseUV = mouse / resolution;
     if(mouse.x > 0.0) {
