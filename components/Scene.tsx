@@ -1,6 +1,5 @@
 "use client";
-import { Canvas } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import * as THREE from "three";
 import {
   renderFragmentShader,
@@ -10,10 +9,8 @@ import {
 } from "./shaders";
 
 export default function Scene() {
-  const [canvas, setCanvas] = useState<HTMLCanvasElement>();
-  const [ctxCanvas, setCtxCanvas] = useState<CanvasRenderingContext2D>();
-  const textureCanvas = useRef<THREE.CanvasTexture>(null);
-  // Create canvas2D
+  // const textureCanvas = useRef<THREE.CanvasTexture>(null);
+
   useEffect(() => {
     const scene = new THREE.Scene();
     const simScene = new THREE.Scene();
@@ -27,6 +24,12 @@ export default function Scene() {
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Add styling to the renderer's canvas
+    // renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+
     document.body.appendChild(renderer.domElement);
 
     const mouse = new THREE.Vector2();
@@ -76,69 +79,83 @@ export default function Scene() {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const fontSize = Math.round(250 * window.devicePixelRatio);
+    // const fontSize = Math.round(120 * window.devicePixelRatio);
     const ctx = canvas.getContext("2d");
 
-    ctx!.fillStyle = "#fb7427";
-    ctx?.fillRect(0, 0, width, height);
+    if (!ctx) {
+      console.error("Could not get 2D context");
+      return;
+    }
 
-    ctx!.fillStyle = "#fef4b8";
-    ctx!.font = `bold ${fontSize}px Test Söhne`;
-    ctx!.textAlign = "center";
-    ctx!.textBaseline = "middle";
-    ctx!.textRendering = "geometricPrecision";
-    ctx!.imageSmoothingEnabled = true;
-    ctx!.imageSmoothingQuality = "high";
-    ctx!.fillText("STUDIO GHIBLI", 100, 100);
+    // Clear the canvas first
+    ctx.clearRect(0, 0, width, height);
 
     const image = new Image();
-    image.src = "/img/banner.webp";
-    // ctx.drawImage(
-    //   image,
-    //   canvasCursor.x - growSize * 0.5,
-    //   canvasCursor.y - growSize * 0.5,
-    //   growSize,
-    //   growSize,
-    // )
+    image.src = "/img/banner-2.webp";
 
-    const textureTexture = new THREE.CanvasTexture(canvas);
-    textureTexture.minFilter = THREE.LinearFilter;
-    textureTexture.magFilter = THREE.LinearFilter;
-    textureTexture.format = THREE.RGBAFormat;
+    // Create a promise to handle image loading
+    const loadImage = new Promise((resolve) => {
+      image.onload = () => {
+        // Draw image to fit canvas while maintaining aspect ratio
+        const scale = Math.max(width / image.width, height / image.height);
+        const x = (width - image.width * scale) / 2;
+        const y = (height - image.height * scale) / 2;
 
-    renderer.domElement.addEventListener("mousemove", (e) => {
-      mouse.x = e.clientX * window.devicePixelRatio;
-      mouse.y = (window.innerHeight - e.clientY) * window.devicePixelRatio;
+        ctx.drawImage(image, x, y, image.width * scale, image.height * scale);
+        resolve(null);
+      };
     });
 
-    renderer.domElement.addEventListener("mouseleave", () => {
-      mouse.set(0, 0);
+    // Create texture after image is loaded
+    loadImage.then(() => {
+      const textureTexture = new THREE.CanvasTexture(canvas);
+      textureTexture.minFilter = THREE.LinearFilter;
+      textureTexture.magFilter = THREE.LinearFilter;
+      textureTexture.format = THREE.RGBAFormat;
+
+      renderer.domElement.addEventListener("mousemove", (e) => {
+        mouse.x = e.clientX * window.devicePixelRatio;
+        mouse.y = (window.innerHeight - e.clientY) * window.devicePixelRatio;
+      });
+
+      const animate = () => {
+        simMaterial.uniforms.frame.value = frame++;
+        // simMaterial.uniforms.time.value = performance.now() / 1000;
+
+        simMaterial.uniforms.textureA.value = rtA.texture;
+        renderer.setRenderTarget(rtB);
+        renderer.render(simScene, camera);
+
+        renderMaterials.uniforms.textureA.value = rtB.texture;
+        renderMaterials.uniforms.textureB.value = textureTexture;
+        renderer.setRenderTarget(null);
+        renderer.render(scene, camera);
+
+        const temp = rtA;
+        rtA = rtB;
+        rtB = temp;
+
+        requestAnimationFrame(animate);
+      };
+
+      animate();
     });
 
-    const animate = () => {
-      simMaterial.uniforms.frame.value = frame++;
-      // simMaterial.uniforms.time.value = performance.now() / 1000;
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
 
-      simMaterial.uniforms.textureA.value = rtA.texture;
-      renderer.setRenderTarget(rtB);
-      renderer.render(simScene, camera);
-
-      renderMaterials.uniforms.textureA.value = rtB.texture;
-      renderMaterials.uniforms.textureB.value = textureTexture;
-      renderer.setRenderTarget(null);
-      renderer.render(scene, camera);
-
-      const temp = rtA;
-      rtA = rtB;
-      rtB = temp;
-
-      requestAnimationFrame(animate);
+      renderer.setSize(width, height);
+      camera.updateProjectionMatrix();
     };
 
-    animate();
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      document.body.removeChild(canvas);
+      // Correct cleanup - remove the renderer's DOM element
+      renderer.domElement.remove();
+      renderer.dispose();
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 

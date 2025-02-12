@@ -137,7 +137,13 @@ const HeroSection = () => {
         />
 
         <div className="absolute top-40 md:left-12 lg:left-20">
-          <h1 className="text-black md:text-[3.5rem] lg:text-[5rem] font-bold leading-[1]">
+          <h1
+            className="text-black md:text-[3.5rem] lg:text-[5rem] font-bold leading-[1] bg-white p-2"
+            style={{
+              textShadow:
+                "0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px black, 0 0 45px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.5)",
+            }}
+          >
             Welcome to <br /> the cat&apos;s world
           </h1>
         </div>

@@ -60,8 +60,8 @@ export const simulationFragmentShader = `
     vec2 mouseUV = mouse / resolution;
     if(mouse.x > 0.0) {
         float dist = distance(uv, mouseUV);
-        if(dist <= 0.02) { // Smaller radius for more precise ripples
-            pressure += 2.0 * (1.0 - dist / 0.02); // Increased intensity
+        if(dist <= 0.03) { // Smaller radius for more precise ripples
+            pressure += 2.0 * (1.0 - dist / 0.03); // Increased intensity
         }
     }
 
