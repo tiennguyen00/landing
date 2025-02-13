@@ -9,8 +9,6 @@ import {
 } from "./shaders";
 
 export default function Scene() {
-  // const textureCanvas = useRef<THREE.CanvasTexture>(null);
-
   useEffect(() => {
     const scene = new THREE.Scene();
     const simScene = new THREE.Scene();
@@ -26,11 +24,12 @@ export default function Scene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     // Add styling to the renderer's canvas
-    // renderer.domElement.style.position = "absolute";
+    // renderer.domElement.style.position = "absolute";Can
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
 
-    document.body.appendChild(renderer.domElement);
+    const canvasContainer = document.getElementById("canvas-container");
+    canvasContainer!.appendChild(renderer.domElement);
 
     const mouse = new THREE.Vector2();
     let frame = 0;

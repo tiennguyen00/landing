@@ -15,7 +15,7 @@ const Navbar = () => {
     }
   }, [theme]);
   return (
-    <div className="absolute top-4 md:inset-x-12 lg:inset-x-20 z-20 w-full md:w-auto">
+    <div className="fixed z-[9999] top-4 md:inset-x-12 lg:inset-x-20 w-full md:w-auto">
       <nav className="flex items-center justify-between py-1 max-md:px-4">
         <div className="flex items-center gap-2">
           <Image src="/img/logo-dark.svg" width={60} height={60} alt="logo" />

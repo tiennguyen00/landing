@@ -6,7 +6,6 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import { Button } from "./ui/button";
-import Navbar from "./Navbar";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -66,7 +65,7 @@ const HeroSection = () => {
             scrub: 0.5,
             pin: true,
             pinSpacing: true,
-            markers: true,
+            // markers: true,
           },
           clipPath: "polygon(64% 90%, 61% 32%, 86% 15%, 93% 49%)",
           transformPerspective: 1000,
@@ -108,18 +107,16 @@ const HeroSection = () => {
   });
 
   useEffect(() => {
-    gsap.to("#banner-drop", {
-      opacity: 1,
-    });
+    const handleWheel = (e: WheelEvent) => {};
+    window.addEventListener("wheel", handleWheel);
 
-    gsap.to("#banner", {
-      opacity: 1,
-    });
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+    };
   }, []);
-
   return (
-    <section
-      className={`w-full min-h-screen relative flex items-end md:items-center overflow-hidden`}
+    <div
+      className={`w-screen min-h-screen relative flex items-end md:items-center overflow-hidden`}
       id="clip"
       ref={imgRef}
       onMouseMove={handleMouseMove}
@@ -128,13 +125,12 @@ const HeroSection = () => {
       {/* IMAGE ON MD LARGER */}
       <div className="absolute size-full animation-clip md:block hidden z-10">
         <Image
-          id="banner"
           src="/img/banner.webp"
           alt=""
           width={1000}
           height={1000}
           sizes="100vw"
-          className="absolute left-0 top-0 opacity-0 size-full object-cover"
+          className="absolute left-0 top-0 size-full object-cover"
         />
 
         <div className="absolute top-40 md:left-12 lg:left-20">
@@ -212,10 +208,7 @@ const HeroSection = () => {
         />
       </div>
 
-      <div
-        id="banner-drop"
-        className="absolute w-full opacity-0 h-full md:block hidden"
-      >
+      <div className="absolute w-full h-full md:block hidden">
         <Image
           src="/img/banner-cropped.webp"
           alt=""
@@ -225,8 +218,6 @@ const HeroSection = () => {
           className="absolute size-full object-cover max-md:object-right"
         />
       </div>
-
-      <Navbar />
 
       <div className="flex flex-col max-md:items-center leading-[1.2] lg:px-20 md:px-12 px-5 max-md:-translate-y-10 max-md:text-center dark:text-white">
         <span className="font-medium md:text-[18px] lg:text-[20px] text-[18px] mb-3 md:block hidden">
@@ -252,7 +243,7 @@ const HeroSection = () => {
           </Button>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
