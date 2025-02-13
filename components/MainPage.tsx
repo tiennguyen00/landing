@@ -5,9 +5,10 @@ import HeroSection from "./HeroSection";
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Scene from "./Scene";
 import Navbar from "./Navbar";
+import SidePag from "./SidePag";
 
 const MainPage = () => {
   const curSlide = useRef(null);
@@ -22,13 +23,15 @@ const MainPage = () => {
     startTime: 0,
     dt: 0,
   });
+  const offset = 10,
+    duration = 1.25;
 
   const tlDefaults = {
     ease: "slow.inOut",
-    duration: 1.25,
+    duration: duration,
   };
 
-  const offset = 10;
+  const [isSliding, setIsSliding] = useState<number | undefined>(undefined);
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -88,6 +91,7 @@ const MainPage = () => {
     window.addEventListener("touchend", handleTouchEnd);
 
     function slideIn() {
+      setIsSliding(next.current);
       if (curSlide.current !== null)
         gsap.set(sections[curSlide.current], { zIndex: 0 });
 
@@ -101,7 +105,7 @@ const MainPage = () => {
           onComplete: () => {
             listening.current = true;
             curSlide.current = next.current;
-            console.log("done curSlide.current", next.current);
+            setIsSliding(undefined);
           },
         })
         .to(
@@ -136,6 +140,7 @@ const MainPage = () => {
 
     // Slides a section out on scroll up
     function slideOut() {
+      setIsSliding(next.current);
       gsap.set(sections[curSlide.current], { zIndex: 0 });
       gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
 
@@ -150,6 +155,7 @@ const MainPage = () => {
           onComplete: () => {
             listening.current = true;
             curSlide.current = next.current;
+            setIsSliding(undefined);
           },
         })
         .to(outerWrappers[curSlide.current], { yPercent: 100 }, 0)
@@ -173,6 +179,7 @@ const MainPage = () => {
   return (
     <>
       <Navbar />
+      <SidePag isSliding={isSliding} quantity={4} duration={duration} />
 
       <section>
         <div className="outer bg-white dark:bg-black">
