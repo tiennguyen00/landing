@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import gsap from "gsap";
 import Image from "next/image";
+import { useState } from "react";
 
 interface Film {
   description: string;
@@ -23,24 +24,42 @@ interface Film {
   url: string;
 }
 
-const FilmCard = ({ film }: { film: Film }) => {
+const FilmCard = ({
+  film,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  film: Film;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) => {
   return (
-    <div className="relative cursor-pointer horizontalItem">
-      <Image
-        src={film.image}
-        alt=""
-        width={600}
-        height={900}
-        layout="responsive"
-        style={{
-          minWidth: "200px",
-        }}
-      />
+    <div
+      className="cursor-pointer horizontalItem group"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="overflow-hidden relative w-[200px] h-[300px] rounded-xl mb-1">
+        <div className="absolute inset-0 bg-black/50 p-1 overflow-auto group-hover:opacity-100 opacity-0 transition-opacity duration-300">
+          <p className="text-white leading-tight font-sm">{film.description}</p>
+        </div>
+        <Image
+          src={film.image}
+          alt=""
+          width={600}
+          height={900}
+          layout="responsive"
+          className="w-full h-full"
+        />
+      </div>
+      <p className="leading-none font-bold dark:text-white">{film.title}</p>
+      <p className=" dark:text-white">Release Date: {film.release_date}</p>
     </div>
   );
 };
 
 const FilmContainer = () => {
+  const [tlState, setTlState] = useState<gsap.core.Timeline | null>(null);
   const { data } = useQuery({
     queryKey: ["films"],
     queryFn: async () =>
@@ -81,6 +100,8 @@ const FilmContainer = () => {
         onReverseComplete: () =>
           tl.totalTime(tl.rawTime() + tl.duration() * 100),
       });
+
+      setTlState(tl);
 
       // Extract snap function
       const snapFunction =
@@ -132,7 +153,7 @@ const FilmContainer = () => {
       addTimelineNavigation(tl, times, items.length, curIndex);
 
       // Pre-render for performance
-      tl.progress(1, true).progress(0, true);
+      // tl.progress(1, true).progress(0, true);
 
       if (config.reversed) {
         tl.vars.onReverseComplete();
@@ -255,9 +276,14 @@ const FilmContainer = () => {
   }
 
   return (
-    <div className="flex gap-6 no-scrollbar overflow-auto flex-1 items-center">
+    <div className="flex flex-1 gap-x-6 no-scrollbar overflow-auto my-4 ">
       {data?.map((film) => (
-        <FilmCard key={film.id} film={film} />
+        <FilmCard
+          key={film.id}
+          film={film}
+          onMouseEnter={() => tlState?.pause()}
+          onMouseLeave={() => tlState?.play()}
+        />
       ))}
     </div>
   );
