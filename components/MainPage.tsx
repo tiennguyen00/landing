@@ -10,6 +10,11 @@ import Scene from "./Scene";
 import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 
+export interface StateSection {
+  tl: gsap.core.Timeline | null;
+  progress: "start" | "end";
+}
+
 const MainPage = () => {
   const curSlide = useRef<number | null>(null);
   const next = useRef(0);
@@ -32,6 +37,10 @@ const MainPage = () => {
   };
 
   const [isSliding, setIsSliding] = useState<number | undefined>(undefined);
+  const stateFirstSectionRef = useRef<StateSection>({
+    tl: null,
+    progress: "start",
+  });
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -46,12 +55,38 @@ const MainPage = () => {
       listening.current = false;
 
       if (direction.current === "down") {
+        // check if the first section is at the start
+        if (
+          stateFirstSectionRef.current.progress === "start" &&
+          (curSlide.current === 0 || curSlide.current === null)
+        ) {
+          stateFirstSectionRef.current.tl?.play().then(() => {
+            stateFirstSectionRef.current.progress = "end";
+            listening.current = true;
+          });
+          return;
+        }
+        // ==========================================
+
         next.current = (curSlide.current ?? 0) + 1;
         if (next.current >= sections.length) next.current = 0;
         slideIn();
       }
 
       if (direction.current === "up") {
+        // check if the first section is at the end
+        if (
+          stateFirstSectionRef.current.progress === "end" &&
+          (curSlide.current === 0 || curSlide.current === null)
+        ) {
+          stateFirstSectionRef.current.tl?.reverse().then(() => {
+            stateFirstSectionRef.current.progress = "start";
+            listening.current = true;
+          });
+          return;
+        }
+        // ==========================================
+
         next.current = (curSlide.current ?? 0) - 1;
         if (next.current < 0) next.current = sections.length - 1;
         slideOut();
@@ -185,7 +220,7 @@ const MainPage = () => {
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
-              <HeroSection />
+              <HeroSection stateFirstSectionRef={stateFirstSectionRef} />
             </div>
           </div>
         </div>

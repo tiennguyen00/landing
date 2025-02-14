@@ -1,3 +1,4 @@
+import { useMouseStore } from "@/app/store/mouse-event";
 import { useGSAP } from "@gsap/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -35,11 +36,11 @@ const FilmCard = ({
 }) => {
   return (
     <div
-      className="cursor-pointer horizontalItem group"
+      className="cursor-pointer h-fit my-auto horizontalItem group"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="overflow-hidden relative w-[200px] h-[300px] rounded-xl mb-1">
+      <div className="overflow-hidden  relative w-[200px] h-[300px] rounded-xl mb-1">
         <div className="absolute inset-0 bg-black/50 p-1 overflow-auto group-hover:opacity-100 opacity-0 transition-opacity duration-300">
           <p className="text-white leading-tight font-sm">{film.description}</p>
         </div>
@@ -280,13 +281,19 @@ const FilmContainer = () => {
   }
 
   return (
-    <div className="flex flex-1 gap-x-6 no-scrollbar overflow-auto my-4 ">
+    <div className="flex flex-1 relative gap-x-6 no-scrollbar overflow-auto my-4">
+      <div className="absolute h-full w-[100px] right-0 z-10 bg-gradient-to-r from-transparent to-white dark:to-black" />
+      <div className="absolute h-full w-[100px] left-0 z-10 bg-gradient-to-l from-transparent to-white dark:to-black" />
       {data?.map((film) => (
         <FilmCard
           key={film.id}
           film={film}
-          onMouseEnter={() => tlState?.pause()}
-          onMouseLeave={() => tlState?.play()}
+          onMouseEnter={() => {
+            tlState?.pause();
+          }}
+          onMouseLeave={() => {
+            tlState?.play();
+          }}
         />
       ))}
     </div>

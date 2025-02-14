@@ -2,14 +2,19 @@
 
 import { useGSAP } from "@gsap/react";
 import Image from "next/image";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import { Button } from "./ui/button";
+import { ArrowDown } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const HeroSection = () => {
+const HeroSection = ({
+  stateFirstSectionRef,
+}: {
+  stateFirstSectionRef: any;
+}) => {
   const imgRef = useRef<HTMLDivElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
 
@@ -51,69 +56,48 @@ const HeroSection = () => {
   };
 
   useGSAP(() => {
-    ScrollTrigger.matchMedia({
-      "(min-width: 768px)": () => {
-        gsap.set(".animation-clip", {
-          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-        });
+    const tl = gsap.timeline();
 
-        gsap.from(".animation-clip", {
-          scrollTrigger: {
-            trigger: "#clip",
-            start: "top top",
-            end: "+=100% top",
-            scrub: 0.5,
-            pin: true,
-            pinSpacing: true,
-            // markers: true,
-          },
-          clipPath: "polygon(64% 90%, 61% 32%, 86% 15%, 93% 49%)",
-          transformPerspective: 1000,
-          ease: "power2.inOut",
-        });
-      },
-
-      "(max-width: 767px)": () => {
-        ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-        gsap.set(".animation-clip", {
-          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-        });
-      },
+    gsap.to(".scroll-marker", {
+      y: -15,
+      scale: 0.98,
+      duration: 1.5,
+      repeat: -1,
+      yoyo: true,
+      ease: "power1.inOut",
     });
-  });
 
-  useGSAP(() => {
-    ScrollTrigger.matchMedia({
-      "(max-width: 768px)": () => {
-        gsap.set(".animation-clip-mobile", {
-          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-        });
+    if (window.innerWidth >= 768) {
+      gsap.set(".animation-clip", {
+        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+      });
 
-        gsap.from(".animation-clip-mobile", {
-          scrollTrigger: {
-            trigger: "#clip",
-            start: "center center",
-            end: "+=1000 center",
-            scrub: 0.5,
-            pin: true,
-            pinSpacing: true,
-          },
-          clipPath: "polygon(39% 12%, 66% 20%, 55% 49%, 34% 35%)",
-          transformPerspective: 1000,
-          ease: "power2.inOut",
-        });
-      },
-    });
-  });
+      tl.from(".animation-clip", {
+        clipPath: "polygon(64% 90%, 61% 32%, 86% 15%, 93% 49%)",
+        transformPerspective: 1000,
+        duration: 1.5,
+        ease: "power2.inOut",
+      });
+    } else {
+      gsap.set(".animation-clip-mobile", {
+        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+      });
 
-  useEffect(() => {
-    const handleWheel = () => {};
-    window.addEventListener("wheel", handleWheel);
+      tl.from(".animation-clip-mobile", {
+        clipPath: "polygon(39% 12%, 66% 20%, 55% 49%, 34% 35%)",
+        transformPerspective: 1000,
+        duration: 1.5,
+        ease: "power2.inOut",
+      });
+    }
+    tl.pause();
+    stateFirstSectionRef.current.tl = tl;
 
     return () => {
-      window.removeEventListener("wheel", handleWheel);
+      tl.kill();
     };
-  }, []);
+  });
+
   return (
     <div
       className={`w-screen min-h-screen relative flex items-end md:items-center overflow-hidden`}
@@ -132,6 +116,16 @@ const HeroSection = () => {
           sizes="100vw"
           className="absolute left-0 top-0 size-full object-cover"
         />
+
+        <div className="flex absolute justify-center items-center bottom-4 left-1/2 -translate-x-1/2 scroll-marker">
+          <Image src="/img/haku.webp" alt="" width={100} height={100} />
+          <div className="flex flex-col items-center">
+            <p className="text-white text-3xl font-bold leading-none">
+              Explore
+            </p>
+            <ArrowDown className="text-white w-[40px] h-[40px]" />
+          </div>
+        </div>
 
         <div className="absolute top-40 md:left-12 lg:left-20">
           <h1
@@ -157,10 +151,19 @@ const HeroSection = () => {
           className="absolute left-0 top-0 size-full object-cover"
         />
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full">
-          <h1 className="text-white text-[2.5rem] font-bold leading-[1] text-center">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full">
+          <h1 className="text-white mb-6 text-[2.5rem] font-bold leading-[1] text-center">
             Welcome to <br /> magical world
           </h1>
+          <div className="flex justify-center items-center scroll-marker">
+            <Image src="/img/haku.webp" alt="" width={50} height={50} />
+            <div className="flex flex-col items-center">
+              <p className="text-white text-normal font-bold leading-none">
+                Explore
+              </p>
+              <ArrowDown className="text-white w-[20px] h-[20px]" />
+            </div>
+          </div>
         </div>
       </div>
       <div className="absolute size-full md:hidden block mask-clip-path-1">
@@ -227,7 +230,7 @@ const HeroSection = () => {
           Dreams and <br /> Adventure Await
         </h1>
         <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] md:block hidden text-gray-500">
-          Step into Studio Ghibli’s enchanting world, where stunning landscapes,
+          Step into Studio Ghibli's enchanting world, where stunning landscapes,
           heartfelt stories, and unforgettable characters come to life.
         </p>
         <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] block md:hidden">
