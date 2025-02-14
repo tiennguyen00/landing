@@ -107,7 +107,7 @@ const HeroSection = () => {
   });
 
   useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {};
+    const handleWheel = () => {};
     window.addEventListener("wheel", handleWheel);
 
     return () => {

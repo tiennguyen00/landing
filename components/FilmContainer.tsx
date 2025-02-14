@@ -73,7 +73,7 @@ const FilmContainer = () => {
   useGSAP(
     () => {
       // Memoize the selector result
-      const items = gsap.utils.toArray(".horizontalItem");
+      const items = gsap.utils.toArray(".horizontalItem") as HTMLElement[];
       if (items.length === 0) return;
 
       // Extract configuration to a constant or prop
@@ -82,8 +82,9 @@ const FilmContainer = () => {
         repeat: -1,
         paddingRight: 25,
         paused: false,
-        snap: false,
+        snap: 1,
         pixelsPerSecond: 100,
+        reversed: false,
       };
 
       // Initialize arrays outside the loop for better memory management
@@ -97,30 +98,32 @@ const FilmContainer = () => {
         repeat: config.repeat,
         paused: config.paused,
         defaults: { ease: "none" },
-        onReverseComplete: () =>
-          tl.totalTime(tl.rawTime() + tl.duration() * 100),
+        onReverseComplete: () => {
+          tl.totalTime(tl.rawTime() + tl.duration() * 100);
+        },
       });
 
       setTlState(tl);
 
       // Extract snap function
       const snapFunction =
-        config.snap === false
+        config.snap === undefined
           ? (v: number) => v
           : gsap.utils.snap(config.snap || 1);
 
       // Pre-calculate initial positions
-      const startX = items[0].offsetLeft;
+      const startX = items[0]?.offsetLeft;
 
       // Set initial positions with proper typing
       gsap.set(items, {
         xPercent: (i: number, el: Element) => {
           const width = (widths[i] = parseFloat(
-            gsap.getProperty(el, "width", "px")
+            gsap.getProperty(el, "width", "px") as string
           ));
           xPercents[i] = snapFunction(
-            (parseFloat(gsap.getProperty(el, "x", "px")) / width) * 100 +
-              gsap.getProperty(el, "xPercent")
+            (parseFloat(gsap.getProperty(el, "x", "px") as string) / width) *
+              100 +
+              (gsap.getProperty(el, "xPercent") as number)
           );
           return xPercents[i];
         },
@@ -156,7 +159,7 @@ const FilmContainer = () => {
       // tl.progress(1, true).progress(0, true);
 
       if (config.reversed) {
-        tl.vars.onReverseComplete();
+        tl.vars.onReverseComplete?.();
         tl.reverse();
       }
 
@@ -172,7 +175,7 @@ const FilmContainer = () => {
 
   // Helper functions
   function calculateTotalWidth(
-    items: Element[],
+    items: HTMLElement[],
     xPercents: number[],
     widths: number[],
     startX: number,
@@ -185,13 +188,13 @@ const FilmContainer = () => {
       lastItem.offsetLeft +
       (xPercents[lastIndex] / 100) * widths[lastIndex] -
       startX +
-      lastItem.offsetWidth * gsap.getProperty(lastItem, "scaleX") +
+      lastItem.offsetWidth * (gsap.getProperty(lastItem, "scaleX") as number) +
       (parseFloat(paddingRight?.toString()) || 0)
     );
   }
 
   function createAnimations(
-    items: Element[],
+    items: HTMLElement[],
     timeline: gsap.core.Timeline,
     config: {
       totalWidth: number;
@@ -207,7 +210,8 @@ const FilmContainer = () => {
       const curX = (config.xPercents[i] / 100) * config.widths[i];
       const distanceToStart = item.offsetLeft + curX - config.startX;
       const distanceToLoop =
-        distanceToStart + config.widths[i] * gsap.getProperty(item, "scaleX");
+        distanceToStart +
+        config.widths[i] * (gsap.getProperty(item, "scaleX") as number);
 
       timeline
         .to(

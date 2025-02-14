@@ -11,7 +11,7 @@ import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 
 const MainPage = () => {
-  const curSlide = useRef(null);
+  const curSlide = useRef<number | null>(null);
   const next = useRef(0);
   const listening = useRef(false);
   const direction = useRef("down");
@@ -46,13 +46,13 @@ const MainPage = () => {
       listening.current = false;
 
       if (direction.current === "down") {
-        next.current = curSlide.current + 1;
+        next.current = (curSlide.current ?? 0) + 1;
         if (next.current >= sections.length) next.current = 0;
         slideIn();
       }
 
       if (direction.current === "up") {
-        next.current = curSlide.current - 1;
+        next.current = (curSlide.current ?? 0) - 1;
         if (next.current < 0) next.current = sections.length - 1;
         slideOut();
       }
@@ -60,7 +60,7 @@ const MainPage = () => {
 
     function handleWheel(e: WheelEvent) {
       if (!listening.current) return;
-      direction.current = e.wheelDeltaY < 0 ? "down" : "up";
+      direction.current = e.deltaY < 0 ? "up" : "down";
       handleDirection();
     }
 
@@ -96,7 +96,7 @@ const MainPage = () => {
         gsap.set(sections[curSlide.current], { zIndex: 0 });
 
       gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
-      gsap.set(wrapper[next.current], { yPercent: 0 });
+      gsap.set(wrapper[next.current] as any, { yPercent: 0 });
 
       const tl = gsap
         .timeline({
@@ -115,12 +115,12 @@ const MainPage = () => {
           },
           0
         )
-        .from(wrapper[next.current], { yPercent: offset }, 0);
+        .from(wrapper[next.current] as any, { yPercent: offset }, 0);
       // .add(revealSectionHeading(), 0);
 
       if (curSlide.current !== null) {
         tl.add(
-          gsap.to(wrapper[curSlide.current], {
+          gsap.to(wrapper[curSlide.current] as any, {
             yPercent: -offset,
             ...tlDefaults,
           }),
@@ -128,9 +128,9 @@ const MainPage = () => {
         ).add(
           gsap
             .timeline()
-            .set(outerWrappers[curSlide.current], { yPercent: 100 })
-            .set(innerWrappers[curSlide.current], { yPercent: -100 })
-            .set(wrapper[curSlide.current], { yPercent: 0 })
+            .set(outerWrappers[curSlide.current] as any, { yPercent: 100 })
+            .set(innerWrappers[curSlide.current] as any, { yPercent: -100 })
+            .set(wrapper[curSlide.current] as any, { yPercent: 0 })
             .set(sections[curSlide.current], { autoAlpha: 0 })
         );
       }
@@ -141,13 +141,13 @@ const MainPage = () => {
     // Slides a section out on scroll up
     function slideOut() {
       setIsSliding(next.current);
-      gsap.set(sections[curSlide.current], { zIndex: 0 });
+      gsap.set(sections[curSlide.current ?? 0], { zIndex: 0 });
       gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
 
       gsap.set([outerWrappers[next.current], innerWrappers[next.current]], {
         yPercent: 0,
       });
-      gsap.set(wrapper[next.current], { yPercent: 0 });
+      gsap.set(wrapper[next.current] as any, { yPercent: 0 });
 
       gsap
         .timeline({
@@ -158,11 +158,11 @@ const MainPage = () => {
             setIsSliding(undefined);
           },
         })
-        .to(outerWrappers[curSlide.current], { yPercent: 100 }, 0)
-        .to(innerWrappers[curSlide.current], { yPercent: -100 }, 0)
-        .to(wrapper[curSlide.current], { yPercent: offset }, 0)
-        .from(wrapper[next.current], { yPercent: -offset }, 0)
-        .set(wrapper[curSlide.current], { yPercent: 0 });
+        .to(outerWrappers[curSlide.current ?? 0] as any, { yPercent: 100 }, 0)
+        .to(innerWrappers[curSlide.current ?? 0] as any, { yPercent: -100 }, 0)
+        .to(wrapper[curSlide.current ?? 0] as any, { yPercent: offset }, 0)
+        .from(wrapper[next.current] as any, { yPercent: -offset }, 0)
+        .set(wrapper[curSlide.current ?? 0] as any, { yPercent: 0 });
       // .add(revealSectionHeading(), ">-1")
     }
 
