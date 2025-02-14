@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import Image from "next/image";
+import FilmContainer from "./FilmContainer";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -130,6 +131,8 @@ const ABSection = () => {
           </div>
         </h1>
       </div>
+
+      <FilmContainer />
     </div>
   );
 };
