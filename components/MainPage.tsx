@@ -115,6 +115,7 @@ const MainPage = () => {
       const t = e.changedTouches[0];
       touch.current.dx = t.pageX - touch.current.startX;
       touch.current.dy = t.pageY - touch.current.startY;
+      if (touch.current.dy === 0) return;
       if (touch.current.dy > 10) direction.current = "up";
       if (touch.current.dy < -10) direction.current = "down";
       handleDirection();
