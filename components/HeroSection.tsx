@@ -230,8 +230,9 @@ const HeroSection = ({
           Dreams and <br /> Adventure Await
         </h1>
         <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] md:block hidden text-gray-500">
-          Step into Studio Ghibli's enchanting world, where stunning landscapes,
-          heartfelt stories, and unforgettable characters come to life.
+          Step into Studio Ghibli&apos;s enchanting world, where stunning
+          landscapes, heartfelt stories, and unforgettable characters come to
+          life.
         </p>
         <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] block md:hidden">
           Step into the world of Studio Ghibli, where breathtaking adventures,

@@ -1,4 +1,3 @@
-import { useMouseStore } from "@/app/store/mouse-event";
 import { useGSAP } from "@gsap/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
