@@ -227,6 +227,9 @@ section {
   visibility: hidden;
   will-change: transform;
 }
+section:nth-child(2) {
+  display: block !important;
+}
 section .outer,
 section .inner {
   width: 100%;

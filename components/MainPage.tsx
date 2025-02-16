@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import Scene from "./Scene";
 import Navbar from "./Navbar";
 import SidePag from "./SidePag";
+import { useSlideStore } from "@/app/store";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -41,6 +42,7 @@ const MainPage = () => {
     tl: null,
     progress: "start",
   });
+  const { setIndex } = useSlideStore();
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -129,9 +131,15 @@ const MainPage = () => {
     function slideIn() {
       setIsSliding(next.current);
       if (curSlide.current !== null)
-        gsap.set(sections[curSlide.current], { zIndex: 0 });
+        gsap.set(sections[curSlide.current], {
+          zIndex: 0,
+          autoAlpha: 0,
+        });
 
-      gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
+      gsap.set(sections[next.current], {
+        autoAlpha: 1,
+        zIndex: 5,
+      });
       gsap.set(wrapper[next.current] as any, { yPercent: 0 });
 
       const tl = gsap
@@ -142,6 +150,7 @@ const MainPage = () => {
             listening.current = true;
             curSlide.current = next.current;
             setIsSliding(undefined);
+            setIndex(curSlide.current);
           },
         })
         .to(
@@ -177,8 +186,14 @@ const MainPage = () => {
     // Slides a section out on scroll up
     function slideOut() {
       setIsSliding(next.current);
-      gsap.set(sections[curSlide.current ?? 0], { zIndex: 0 });
-      gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
+      gsap.set(sections[curSlide.current ?? 0], {
+        zIndex: 0,
+        autoAlpha: 0,
+      });
+      gsap.set(sections[next.current], {
+        autoAlpha: 1,
+        zIndex: 1,
+      });
 
       gsap.set([outerWrappers[next.current], innerWrappers[next.current]], {
         yPercent: 0,
@@ -192,6 +207,7 @@ const MainPage = () => {
             listening.current = true;
             curSlide.current = next.current;
             setIsSliding(undefined);
+            setIndex(curSlide.current);
           },
         })
         .to(outerWrappers[curSlide.current ?? 0] as any, { yPercent: 100 }, 0)

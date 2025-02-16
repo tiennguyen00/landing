@@ -7,8 +7,10 @@ import {
   simulationFragmentShader,
   simulationVertexShader,
 } from "./shaders";
+import { useSlideStore } from "@/app/store";
 
 export default function Scene() {
+  const { index } = useSlideStore();
   useEffect(() => {
     const scene = new THREE.Scene();
     const simScene = new THREE.Scene();
@@ -29,6 +31,11 @@ export default function Scene() {
     renderer.domElement.style.height = "100%";
 
     const canvasContainer = document.getElementById("canvas-container");
+    if (index !== 2) {
+      if (canvasContainer!.contains(renderer.domElement))
+        canvasContainer!.removeChild(renderer.domElement);
+      return;
+    }
     canvasContainer!.appendChild(renderer.domElement);
 
     const mouse = new THREE.Vector2();
@@ -156,7 +163,7 @@ export default function Scene() {
       renderer.dispose();
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [index]);
 
   return <></>;
 }

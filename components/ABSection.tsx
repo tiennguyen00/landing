@@ -88,7 +88,7 @@ const ABSection = () => {
   };
 
   return (
-    <div className="w-full min-h-screen  flex flex-col py-10 sm:py-20 md:max-w-7xl mx-auto md:px-10 px-5 relative">
+    <div className="w-full min-h-screen overflow-hidden flex flex-col py-10 sm:py-20 mx-auto md:px-10 px-5 relative">
       <div
         className="flex flex-col items-center text-center gap-2 headline-container w-fit mx-auto dark:text-white "
         ref={headlineRef}

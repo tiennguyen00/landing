@@ -4,6 +4,8 @@ import axios from "axios";
 import gsap from "gsap";
 import Image from "next/image";
 import { useState } from "react";
+import { horizontalLoop } from "@/utils";
+import { cn } from "@/lib/utils";
 
 interface Film {
   description: string;
@@ -24,18 +26,30 @@ interface Film {
   url: string;
 }
 
+const config = {
+  speed: 1,
+  repeat: -1,
+  paddingRight: 25,
+  paused: false,
+  snap: 1,
+  pixelsPerSecond: 100,
+  reversed: false,
+};
+
 const FilmCard = ({
   film,
   onMouseEnter,
   onMouseLeave,
+  className,
 }: {
   film: Film;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  className: string;
 }) => {
   return (
     <div
-      className="cursor-pointer h-fit my-auto horizontalItem group"
+      className={cn("cursor-pointer h-fit my-auto group ", className)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -60,6 +74,8 @@ const FilmCard = ({
 
 const FilmContainer = () => {
   const [tlState, setTlState] = useState<gsap.core.Timeline | null>(null);
+  const [tlState2, setTlState2] = useState<gsap.core.Timeline | null>(null);
+
   const { data } = useQuery({
     queryKey: ["films"],
     queryFn: async () =>
@@ -72,100 +88,23 @@ const FilmContainer = () => {
 
   useGSAP(
     () => {
-      // Memoize the selector result
+      if (!data) return;
       const items = gsap.utils.toArray(".horizontalItem") as HTMLElement[];
-      if (items.length === 0) return;
-
-      // Extract configuration to a constant or prop
-      const config = {
-        speed: 1,
-        repeat: -1,
-        paddingRight: 25,
-        paused: false,
-        snap: 1,
-        pixelsPerSecond: 100,
-        reversed: false,
-      };
-
-      // Initialize arrays outside the loop for better memory management
-      const times: number[] = [];
-      const widths: number[] = [];
-      const xPercents: number[] = [];
-      const curIndex = 0;
-
-      // Create timeline with proper typing
-      const tl = gsap.timeline({
-        repeat: config.repeat,
-        paused: config.paused,
-        defaults: { ease: "none" },
-        onReverseComplete: () => {
-          tl.totalTime(tl.rawTime() + tl.duration() * 100);
-        },
+      const items2 = gsap.utils.toArray(".horizontalItem2") as HTMLElement[];
+      if (items.length === 0 || items2.length === 0) return;
+      const tl = horizontalLoop(items, config);
+      const tl2 = horizontalLoop(items2, {
+        ...config,
+        reversed: true,
+        speed: 0.8,
       });
 
       setTlState(tl);
+      setTlState2(tl2);
 
-      // Extract snap function
-      const snapFunction =
-        config.snap === undefined
-          ? (v: number) => v
-          : gsap.utils.snap(config.snap || 1);
-
-      // Pre-calculate initial positions
-      const startX = items[0]?.offsetLeft;
-
-      // Set initial positions with proper typing
-      gsap.set(items, {
-        xPercent: (i: number, el: Element) => {
-          const width = (widths[i] = parseFloat(
-            gsap.getProperty(el, "width", "px") as string
-          ));
-          xPercents[i] = snapFunction(
-            (parseFloat(gsap.getProperty(el, "x", "px") as string) / width) *
-              100 +
-              (gsap.getProperty(el, "xPercent") as number)
-          );
-          return xPercents[i];
-        },
-      });
-
-      // Reset x position
-      gsap.set(items, { x: 0 });
-
-      // Calculate total width more efficiently
-      const totalWidth = calculateTotalWidth(
-        items,
-        xPercents,
-        widths,
-        startX,
-        config.paddingRight
-      );
-
-      // Create animations
-      createAnimations(items, tl, {
-        totalWidth,
-        startX,
-        xPercents,
-        widths,
-        times,
-        snapFunction,
-        pixelsPerSecond: config.speed * config.pixelsPerSecond,
-      });
-
-      // Add navigation methods
-      addTimelineNavigation(tl, times, items.length, curIndex);
-
-      // Pre-render for performance
-      // tl.progress(1, true).progress(0, true);
-
-      if (config.reversed) {
-        tl.vars.onReverseComplete?.();
-        tl.reverse();
-      }
-
-      // Cleanup function
       return () => {
         tl.kill();
+        tl2.kill();
       };
     },
     {
@@ -173,128 +112,41 @@ const FilmContainer = () => {
     }
   );
 
-  // Helper functions
-  function calculateTotalWidth(
-    items: HTMLElement[],
-    xPercents: number[],
-    widths: number[],
-    startX: number,
-    paddingRight: number
-  ): number {
-    const lastIndex = items.length - 1;
-    const lastItem = items[lastIndex];
-
-    return (
-      lastItem.offsetLeft +
-      (xPercents[lastIndex] / 100) * widths[lastIndex] -
-      startX +
-      lastItem.offsetWidth * (gsap.getProperty(lastItem, "scaleX") as number) +
-      (parseFloat(paddingRight?.toString()) || 0)
-    );
-  }
-
-  function createAnimations(
-    items: HTMLElement[],
-    timeline: gsap.core.Timeline,
-    config: {
-      totalWidth: number;
-      startX: number;
-      xPercents: number[];
-      widths: number[];
-      times: number[];
-      snapFunction: (v: number) => number;
-      pixelsPerSecond: number;
-    }
-  ) {
-    items.forEach((item, i) => {
-      const curX = (config.xPercents[i] / 100) * config.widths[i];
-      const distanceToStart = item.offsetLeft + curX - config.startX;
-      const distanceToLoop =
-        distanceToStart +
-        config.widths[i] * (gsap.getProperty(item, "scaleX") as number);
-
-      timeline
-        .to(
-          item,
-          {
-            xPercent: config.snapFunction(
-              ((curX - distanceToLoop) / config.widths[i]) * 100
-            ),
-            duration: distanceToLoop / config.pixelsPerSecond,
-          },
-          0
-        )
-        .fromTo(
-          item,
-          {
-            xPercent: config.snapFunction(
-              ((curX - distanceToLoop + config.totalWidth) / config.widths[i]) *
-                100
-            ),
-          },
-          {
-            xPercent: config.xPercents[i],
-            duration:
-              (config.totalWidth - distanceToLoop) / config.pixelsPerSecond,
-            immediateRender: false,
-          },
-          distanceToLoop / config.pixelsPerSecond
-        )
-        .add(`label${i}`, distanceToStart / config.pixelsPerSecond);
-
-      config.times[i] = distanceToStart / config.pixelsPerSecond;
-    });
-  }
-
-  function addTimelineNavigation(
-    timeline: gsap.core.Timeline,
-    times: number[],
-    length: number,
-    curIndex: number
-  ) {
-    const toIndex = (index: number, vars: gsap.TweenVars = {}) => {
-      if (Math.abs(index - curIndex) > length / 2) {
-        index += index > curIndex ? -length : length;
-      }
-
-      const newIndex = gsap.utils.wrap(0, length, index);
-      let time = times[newIndex];
-
-      if (time > timeline.time() !== index > curIndex) {
-        vars.modifiers = { time: gsap.utils.wrap(0, timeline.duration()) };
-        time += timeline.duration() * (index > curIndex ? 1 : -1);
-      }
-
-      curIndex = newIndex;
-      vars.overwrite = true;
-      return timeline.tweenTo(time, vars);
-    };
-
-    Object.assign(timeline, {
-      next: (vars?: gsap.TweenVars) => toIndex(curIndex + 1, vars),
-      previous: (vars?: gsap.TweenVars) => toIndex(curIndex - 1, vars),
-      current: () => curIndex,
-      toIndex: (index: number, vars?: gsap.TweenVars) => toIndex(index, vars),
-      times,
-    });
-  }
-
   return (
-    <div className="flex flex-1 relative gap-x-6 no-scrollbar overflow-auto my-4">
+    <div className="flex flex-1 flex-col max-w-7xl mx-auto justify-center space-y-10 relative ">
       <div className="absolute h-full w-[100px] right-0 z-10 bg-gradient-to-r from-transparent to-white dark:to-black" />
       <div className="absolute h-full w-[100px] left-0 z-10 bg-gradient-to-l from-transparent to-white dark:to-black" />
-      {data?.map((film) => (
-        <FilmCard
-          key={film.id}
-          film={film}
-          onMouseEnter={() => {
-            tlState?.pause();
-          }}
-          onMouseLeave={() => {
-            tlState?.play();
-          }}
-        />
-      ))}
+      <div className="flex gap-x-6 overflow-auto no-scrollbar">
+        {data?.slice(0, 10)?.map((film) => (
+          <FilmCard
+            key={film.id}
+            film={film}
+            onMouseEnter={() => {
+              tlState?.pause();
+            }}
+            onMouseLeave={() => {
+              tlState?.play();
+            }}
+            className="horizontalItem"
+          />
+        ))}
+      </div>
+
+      <div className="flex gap-x-6 overflow-auto no-scrollbar">
+        {data?.slice(10, 21)?.map((film) => (
+          <FilmCard
+            key={film.id}
+            film={film}
+            onMouseEnter={() => {
+              tlState2?.pause();
+            }}
+            onMouseLeave={() => {
+              tlState2?.reverse();
+            }}
+            className="horizontalItem2"
+          />
+        ))}
+      </div>
     </div>
   );
 };
