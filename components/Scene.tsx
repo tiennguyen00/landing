@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
 import {
   renderFragmentShader,
@@ -9,8 +9,43 @@ import {
 } from "./shaders";
 import { useSlideStore } from "@/app/store";
 
-export default function Scene() {
+const SceneContainer = () => {
+  const [isShowLoading, setIsShowLoading] = useState(false);
+  const { index, direction, listening } = useSlideStore();
+  useEffect(() => {
+    if (
+      (index === 1 && direction === "down" && !listening) ||
+      (index === 3 && direction === "up" && !listening)
+    )
+      setIsShowLoading(true);
+    else setIsShowLoading(false);
+  }, [index, direction, listening]);
+  return (
+    <>
+      {/* this is specific component for waiting for the scene to load */}
+      {isShowLoading && (
+        <div className="fixed z-10 bg-white dark:bg-black inset-0 flex items-center justify-center">
+          <h1 className="text-dark dark:text-white">Loading</h1>
+        </div>
+      )}
+      <section>
+        <div className="outer relative dark:bg-black">
+          <div className="inner">
+            <div className="wrapper" id="canvas-container">
+              <Scene />
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+};
+
+function Scene() {
   const { index } = useSlideStore();
+  useEffect(() => {
+    console.log("rerender");
+  }, []);
   useEffect(() => {
     const scene = new THREE.Scene();
     const simScene = new THREE.Scene();
@@ -31,6 +66,7 @@ export default function Scene() {
     renderer.domElement.style.height = "100%";
 
     const canvasContainer = document.getElementById("canvas-container");
+
     if (index !== 2) {
       if (canvasContainer!.contains(renderer.domElement))
         canvasContainer!.removeChild(renderer.domElement);
@@ -167,3 +203,5 @@ export default function Scene() {
 
   return <></>;
 }
+
+export default SceneContainer;

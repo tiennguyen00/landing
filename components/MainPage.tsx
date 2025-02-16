@@ -6,10 +6,10 @@ import HeroSection from "./HeroSection";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useRef, useState } from "react";
-import Scene from "./Scene";
 import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
+import SceneContainer from "./Scene";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -42,7 +42,7 @@ const MainPage = () => {
     tl: null,
     progress: "start",
   });
-  const { setIndex } = useSlideStore();
+  const { setIndex, setDirection, setListening } = useSlideStore();
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -55,6 +55,7 @@ const MainPage = () => {
 
     function handleDirection() {
       listening.current = false;
+      setListening(false);
 
       if (direction.current === "down") {
         // check if the first section is at the start
@@ -65,6 +66,7 @@ const MainPage = () => {
           stateFirstSectionRef.current.tl?.play().then(() => {
             stateFirstSectionRef.current.progress = "end";
             listening.current = true;
+            setListening(true);
           });
           return;
         }
@@ -84,6 +86,7 @@ const MainPage = () => {
           stateFirstSectionRef.current.tl?.reverse().then(() => {
             stateFirstSectionRef.current.progress = "start";
             listening.current = true;
+            setListening(true);
           });
           return;
         }
@@ -98,6 +101,7 @@ const MainPage = () => {
     function handleWheel(e: WheelEvent) {
       if (!listening.current) return;
       direction.current = e.deltaY < 0 ? "up" : "down";
+      setDirection(direction.current);
       handleDirection();
     }
 
@@ -120,6 +124,7 @@ const MainPage = () => {
       if (touch.current.dy <= 150 && touch.current.dy >= -150) return;
       if (touch.current.dy > 150) direction.current = "up";
       if (touch.current.dy < -150) direction.current = "down";
+      setDirection(direction.current);
       handleDirection();
     }
     // Handle the event
@@ -148,6 +153,7 @@ const MainPage = () => {
           defaults: tlDefaults,
           onComplete: () => {
             listening.current = true;
+            setListening(true);
             curSlide.current = next.current;
             setIsSliding(undefined);
             setIndex(curSlide.current);
@@ -205,6 +211,7 @@ const MainPage = () => {
           defaults: tlDefaults,
           onComplete: () => {
             listening.current = true;
+            setListening(true);
             curSlide.current = next.current;
             setIsSliding(undefined);
             setIndex(curSlide.current);
@@ -251,15 +258,9 @@ const MainPage = () => {
           </div>
         </div>
       </section>
-      <section>
-        <div className="outer bg-white dark:bg-black">
-          <div className="inner">
-            <div className="wrapper" id="canvas-container">
-              <Scene />
-            </div>
-          </div>
-        </div>
-      </section>
+
+      <SceneContainer />
+
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
