@@ -91,7 +91,7 @@ const Footer = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap sm:justify-around font-notosans max-w-[1200px] w-full px-4 pb-6 mx-auto">
+      <div className="hidden sm:flex flex-wrap sm:justify-around font-notosans max-w-[1200px] w-full px-4 pb-6 mx-auto">
         <div className="flex flex-col min-w-[200px] sm:min-w-auto flex-1">
           <div className="flex items-center gap-2 mb-1">
             <img src="/img/info.png" alt="" />
@@ -143,7 +143,7 @@ const Footer = () => {
           </ul>
         </div>
       </div>
-      <div className="w-full bg-black  text-white font-notosans py-1 text-center font-bold">
+      <div className="w-full bg-black hidden sm:block text-white font-notosans py-1 text-center font-bold">
         © Semic Distribution - Maison Ghibli is a registered trademark -
         realised by WebXY
       </div>
