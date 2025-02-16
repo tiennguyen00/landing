@@ -53,7 +53,7 @@ const FilmCard = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="overflow-hidden  relative w-[200px] h-[300px] rounded-xl mb-1">
+      <div className="overflow-hidden  relative w-[150px] sm:w-[200px] h-[200px] sm:h-[300px] rounded-xl mb-1">
         <div className="absolute inset-0 bg-black/50 p-1 overflow-auto group-hover:opacity-100 opacity-0 transition-opacity duration-300">
           <p className="text-white leading-tight font-sm">{film.description}</p>
         </div>
@@ -66,8 +66,12 @@ const FilmCard = ({
           className="w-full h-full"
         />
       </div>
-      <p className="leading-none font-bold dark:text-white">{film.title}</p>
-      <p className=" dark:text-white">Release Date: {film.release_date}</p>
+      <p className="leading-none text-xs sm:text-normal font-bold dark:text-white">
+        {film.title}
+      </p>
+      <p className=" dark:text-white text-xs sm:text-normal ">
+        Release Date: {film.release_date}
+      </p>
     </div>
   );
 };
@@ -113,7 +117,7 @@ const FilmContainer = () => {
   );
 
   return (
-    <div className="flex flex-1 flex-col max-w-7xl mx-auto justify-center space-y-10 relative ">
+    <div className="flex flex-1 flex-col max-w-7xl mx-auto justify-center sm:space-y-10 relative ">
       <div className="absolute h-full w-[100px] right-0 z-10 bg-gradient-to-r from-transparent to-white dark:to-black" />
       <div className="absolute h-full w-[100px] left-0 z-10 bg-gradient-to-l from-transparent to-white dark:to-black" />
       <div className="flex gap-x-6 overflow-auto no-scrollbar">

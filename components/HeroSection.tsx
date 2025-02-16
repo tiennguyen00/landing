@@ -222,29 +222,31 @@ const HeroSection = ({
         />
       </div>
 
-      <div className="flex flex-col max-md:items-center leading-[1.2] lg:px-20 md:px-12 px-5 max-md:-translate-y-10 max-md:text-center dark:text-white">
-        <span className="font-medium md:text-[18px] lg:text-[20px] text-[18px] mb-3 md:block hidden">
-          Explore the Magic of Ghibli.
-        </span>
-        <h1 className="lg:text-[4rem] md:text-[3rem] text-[2.5rem] font-bold leading-[1]">
-          Dreams and <br /> Adventure Await
-        </h1>
-        <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] md:block hidden text-gray-500">
-          Step into Studio Ghibli&apos;s enchanting world, where stunning
-          landscapes, heartfelt stories, and unforgettable characters come to
-          life.
-        </p>
-        <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] block md:hidden">
-          Step into the world of Studio Ghibli, where breathtaking adventures,
-          heartfelt stories, and enchanting landscapes come to life.
-        </p>
-        <div className="flex items-center gap-3 mt-6">
-          <Button className="h-[54px] rounded-[12px] bg-black md:text-lg font-semibold">
-            Explore more
-          </Button>
-          <Button className="h-[54px] rounded-[12px] bg-black md:text-lg font-semibold">
-            Watch now
-          </Button>
+      <div className="flex flex-col items-center sm:w-1/2 leading-[1.2] lg:px-20 md:px-12 px-5 -translate-y-10 sm:translate-y-0 max-md:text-center dark:text-white">
+        <div>
+          <span className="font-medium md:text-[18px] lg:text-[20px] text-[18px] mb-3 md:block hidden">
+            Explore the Magic of Ghibli.
+          </span>
+          <h1 className="lg:text-[4rem] md:text-[3rem] text-[2.5rem] font-bold leading-[1]">
+            Dreams and <br /> Adventure Await
+          </h1>
+          <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] md:block hidden text-gray-500">
+            Step into Studio Ghibli&apos;s enchanting world, where stunning
+            landscapes, heartfelt stories, and unforgettable characters come to
+            life.
+          </p>
+          <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] block md:hidden">
+            Step into the world of Studio Ghibli, where breathtaking adventures,
+            heartfelt stories, and enchanting landscapes come to life.
+          </p>
+          <div className="flex items-center gap-3 mt-6">
+            <Button className="h-[48px] sm:h-[54px] rounded-[12px] bg-black md:text-lg font-semibold">
+              Explore more
+            </Button>
+            <Button className="h-[48px] sm:h-[54px] rounded-[12px] bg-black md:text-lg font-semibold">
+              Watch now
+            </Button>
+          </div>
         </div>
       </div>
     </div>

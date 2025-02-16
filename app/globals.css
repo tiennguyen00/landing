@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,6 +61,9 @@
 }
 
 @layer utilities {
+  .padding {
+    @apply py-28 sm:py-28 md:px-10 px-5;
+  }
   /* HTML: <div class="loader"></div> */
   .loader {
     width: 50px;

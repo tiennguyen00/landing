@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.themoviedb.org",
       },
+      {
+        protocol: "https",
+        hostname: "www.maison-ghibli.com",
+      },
     ],
   },
 };

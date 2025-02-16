@@ -62,6 +62,7 @@ export default {
       },
       fontFamily: {
         parkinsans: ["var(--font-parkinsans)"],
+        notosans: ["Noto Sans", "sans-serif"],
       },
       keyframes: {
         autoRun: {

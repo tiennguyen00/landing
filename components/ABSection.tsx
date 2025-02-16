@@ -88,7 +88,7 @@ const ABSection = () => {
   };
 
   return (
-    <div className="w-full min-h-screen overflow-hidden flex flex-col py-10 sm:py-20 mx-auto md:px-10 px-5 relative">
+    <div className="w-full min-h-screen overflow-hidden flex flex-col relative padding">
       <div
         className="flex flex-col items-center text-center gap-2 headline-container w-fit mx-auto dark:text-white "
         ref={headlineRef}
@@ -112,7 +112,7 @@ const ABSection = () => {
           </div>
         </h1>
 
-        <h1 className="md:text-[4rem] relative text-[2.5rem] font-bold leading-tight headline">
+        <h1 className="md:text-[4rem] mb-2 relative text-[2.5rem] font-bold leading-tight headline">
           Step Into the <br /> Ghibli Universe
           <div className="bg-transparent absolute hidden sm:block right-0 bottom-0 translate-x-[calc(100%+15px)] -translate-y-1/4 dark:bg-white w-[50px] h-[50px] rounded-full">
             <Image
