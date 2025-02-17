@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import gsap from "gsap";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { horizontalLoop } from "@/utils";
 import { cn } from "@/lib/utils";
 import {
