@@ -42,10 +42,6 @@ const SceneContainer = () => {
 };
 
 function Scene() {
-  const { index } = useSlideStore();
-  useEffect(() => {
-    console.log("rerender");
-  }, []);
   useEffect(() => {
     const scene = new THREE.Scene();
     const simScene = new THREE.Scene();
@@ -67,11 +63,6 @@ function Scene() {
 
     const canvasContainer = document.getElementById("canvas-container");
 
-    if (index !== 2) {
-      if (canvasContainer!.contains(renderer.domElement))
-        canvasContainer!.removeChild(renderer.domElement);
-      return;
-    }
     canvasContainer!.appendChild(renderer.domElement);
 
     const mouse = new THREE.Vector2();
@@ -199,7 +190,7 @@ function Scene() {
       renderer.dispose();
       window.removeEventListener("resize", handleResize);
     };
-  }, [index]);
+  }, []);
 
   return <></>;
 }
