@@ -25,7 +25,7 @@ const maison = [
 ];
 const Footer = () => {
   return (
-    <footer className="padding !px-0 min-h-screen w-screen bg-[url('/img/footer-bg.webp')] bg-cover bg-center flex flex-col justify-center items-center space-y-24 sm:space-y-16">
+    <footer className="px-0 min-h-screen w-screen bg-[url('/img/footer-bg.webp')] bg-cover bg-center flex flex-col justify-center items-center space-y-24 sm:space-y-16">
       <div className="flex flex-col items-center sm:flex-row justify-around max-w-[1400px] mx-auto w-full">
         <div className="flex w-3/5 sm:w-auto">
           <img
