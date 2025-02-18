@@ -90,15 +90,10 @@ const ABSectionV2 = () => {
   return (
     <div className="w-full  min-h-screen overflow-hidden flex flex-col items-center relative padding">
       <div
-        className="flex flex-col items-center text-center gap-2 headline-container mx-auto dark:text-white "
+        className="flex flex-col items-center text-center headline-container mx-auto dark:text-white "
         ref={headlineRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={
-          {
-            // display: height < 720 ? "none" : "flex",
-          }
-        }
       >
         <h1 className="text-black relative dark:text-white text-[16px] md:text-[18px] font-medium">
           Explore worlds, beloved characters, and stories
@@ -119,7 +114,7 @@ const ABSectionV2 = () => {
           </div>
         </h1>
 
-        <h1 className="md:text-[3rem] mb-2 relative text-[2.5rem] font-bold leading-tight headline">
+        <h1 className="md:text-[3rem] mb-2 relative text-[2.5rem] font-bold leading-none headline">
           Step Into the <br /> Ghibli Universe
           <div className="bg-transparent absolute hidden sm:block right-0 bottom-0 translate-x-[calc(100%+15px)] -translate-y-1/4 dark:bg-white w-[50px] h-[50px] rounded-full">
             <Image

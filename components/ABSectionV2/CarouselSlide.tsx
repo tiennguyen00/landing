@@ -7,6 +7,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import { Draggable } from "gsap/Draggable";
+import { useWindowSize } from "@/utils/useScree";
 
 gsap.registerPlugin(Draggable);
 
@@ -30,7 +31,9 @@ const CarouselSlide = () => {
         return res.data as Film[];
       }),
   });
-  const fixedWidth = 919;
+  const { height } = useWindowSize();
+
+  const fixedWidth = height * 0.35 * (19 / 6);
   const [direction, setDirection] = useState<"to-l" | "to-r">("to-l");
   const [tlState, setTlState] = useState<gsap.core.Timeline | null>(null);
 
@@ -67,21 +70,32 @@ const CarouselSlide = () => {
 
     // Create the timeline once
     if (!timelineRef.current) {
-      timelineRef.current = gsap.timeline({ repeat: -1 });
+      timelineRef.current = gsap.timeline({
+        repeat: -1,
+        onUpdate: () => {
+          // console.log("Animation progress:", timelineRef.current?.progress());
+        },
+        onReverseComplete: () => {
+          console.log("onReverseComplete");
+          timelineRef.current?.timeScale(-1);
+          timelineRef.current?.progress(1); // Set progress to end
+        },
+      });
 
       timelineRef.current.to(images, {
         x: `-${offset}%`,
-        duration: 30,
+        duration: 20,
         ease: "none",
       });
     }
 
     // Control the timeline based on direction
     if (direction === "to-l") {
+      timelineRef.current?.timeScale(1);
       timelineRef.current.play();
       tlState?.reverse();
     } else if (direction === "to-r") {
-      timelineRef.current?.reverse();
+      timelineRef.current?.timeScale(-1);
       tlState?.play();
     }
   }, [direction, data]);
@@ -97,10 +111,11 @@ const CarouselSlide = () => {
         // this.startOffset = scrub.vars.offset;
         console.log("onPress");
       },
-      onDrag() {
+      onDrag(e) {
         // scrub.vars.offset = this.startOffset + (this.startX - this.x) * 0.001;
         // scrub.invalidate().restart(); // same thing as we do in the ScrollTrigger's onUpdate
         console.log("onDrag");
+        console.log(e.x, e.startX);
       },
       onDragEnd() {
         // scrollToOffset(scrub.vars.offset);
@@ -110,29 +125,19 @@ const CarouselSlide = () => {
   }, [data]);
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 flex justify-center items-center">
       <div
-        className="text-[40px]"
-        onClick={() => {
-          setDirection("to-l");
-        }}
+        className="w-full flex space-x-2 relative overflow-auto no-scrollbar"
+        onClick={() => setDirection(direction === "to-r" ? "to-l" : "to-r")}
       >
-        to-l
-      </div>
-      <div
-        className="text-[40px]"
-        onClick={() => {
-          setDirection("to-r");
-        }}
-      >
-        to-r
-      </div>
-      <div className="w-full m-auto flex space-x-2 relative overflow-auto no-scrollbar">
         <div className="absolute invisible drag-proxy" />
-        {data?.slice(0, 6)?.map((film) => (
+        {data?.map((film) => (
           <div
             key={film.id}
-            className="h-[517px] relative overflow-hidden horizontal-item"
+            className="relative overflow-hidden horizontal-item"
+            style={{
+              height: `${(fixedWidth * 9) / 16}px`,
+            }}
           >
             <Image
               className="absolute h-full aspect-[16/9] horizontal-image"
