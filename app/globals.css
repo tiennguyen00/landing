@@ -243,6 +243,6 @@ section .inner {
 }
 
 /* For horizontal loop */
-.horizontalItem {
+.horizontal-item {
   width: max(20vw, 200px);
 }

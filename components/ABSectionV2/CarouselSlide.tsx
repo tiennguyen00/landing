@@ -6,6 +6,9 @@ import axios from "axios";
 import Image from "next/image";
 import gsap from "gsap";
 import { useRef, useState } from "react";
+import { Draggable } from "gsap/Draggable";
+
+gsap.registerPlugin(Draggable);
 
 const config = {
   speed: 0.4,
@@ -34,7 +37,7 @@ const CarouselSlide = () => {
   useGSAP(
     () => {
       if (!data) return;
-      const items = gsap.utils.toArray(".horizontalItem") as HTMLElement[];
+      const items = gsap.utils.toArray(".horizontal-item") as HTMLElement[];
       const tl = horizontalLoop(items, {
         ...config,
         reversed: true,
@@ -56,7 +59,7 @@ const CarouselSlide = () => {
 
   useGSAP(() => {
     if (!data) return;
-    const images = gsap.utils.toArray(".horizontalImage") as HTMLElement[];
+    const images = gsap.utils.toArray(".horizontal-image") as HTMLElement[];
 
     const offset =
       ((fixedWidth - Math.max(window.innerWidth * 0.2, 200)) * 100) /
@@ -83,6 +86,29 @@ const CarouselSlide = () => {
     }
   }, [direction, data]);
 
+  useGSAP(() => {
+    if (!data) return;
+    const iteration = 0; // gets iterated when we scroll all the way to the end or start and wraps around - allows us to smoothly continue the playhead scrubbing in the correct direction.
+
+    Draggable.create(".drag-proxy", {
+      type: "x",
+      trigger: ".horizontal-item",
+      onPress() {
+        // this.startOffset = scrub.vars.offset;
+        console.log("onPress");
+      },
+      onDrag() {
+        // scrub.vars.offset = this.startOffset + (this.startX - this.x) * 0.001;
+        // scrub.invalidate().restart(); // same thing as we do in the ScrollTrigger's onUpdate
+        console.log("onDrag");
+      },
+      onDragEnd() {
+        // scrollToOffset(scrub.vars.offset);
+        console.log("onDragEnd");
+      },
+    });
+  }, [data]);
+
   return (
     <div className="flex-1">
       <div
@@ -101,14 +127,15 @@ const CarouselSlide = () => {
       >
         to-r
       </div>
-      <div className="w-full m-auto flex space-x-2 overflow-auto no-scrollbar">
+      <div className="w-full m-auto flex space-x-2 relative overflow-auto no-scrollbar">
+        <div className="absolute invisible drag-proxy" />
         {data?.slice(0, 6)?.map((film) => (
           <div
             key={film.id}
-            className="h-[517px] relative overflow-hidden horizontalItem"
+            className="h-[517px] relative overflow-hidden horizontal-item"
           >
             <Image
-              className="absolute h-full aspect-[16/9] horizontalImage"
+              className="absolute h-full aspect-[16/9] horizontal-image"
               style={{
                 minWidth: `${fixedWidth}px`,
               }}
