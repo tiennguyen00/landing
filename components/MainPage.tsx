@@ -1,5 +1,4 @@
 "use client";
-import ABSection from "./ABSection";
 import Footer from "./Footer";
 import HeroSection from "./HeroSection";
 
@@ -10,6 +9,7 @@ import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
 import SceneContainer from "./Scene";
+import ABSectionV2 from "./ABSectionV2";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -240,7 +240,7 @@ const MainPage = () => {
       <Navbar />
       <SidePag isSliding={isSliding} quantity={4} duration={duration} />
 
-      <section>
+      {/* <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
@@ -248,12 +248,12 @@ const MainPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
-              <ABSection />
+              <ABSectionV2 />
             </div>
           </div>
         </div>

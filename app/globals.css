@@ -241,3 +241,8 @@ section .inner {
   overflow-y: hidden;
   will-change: transform;
 }
+
+/* For horizontal loop */
+.horizontalItem {
+  width: max(20vw, 200px);
+}
