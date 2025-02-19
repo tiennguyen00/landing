@@ -91,12 +91,37 @@ const CarouselSlide = () => {
     // Control the timeline based on direction
   }, [data]);
 
+  // Function to dynamically scale items based on drag position
+
   useGSAP(() => {
     if (!tlState) return;
 
     let lastX = 0;
     let velocity = 0;
     let momentumAnimation: gsap.core.Tween | null = null;
+
+    const items = gsap.utils.toArray(".horizontal-item") as HTMLElement[];
+
+    function scaleItems(dragX: number) {
+      const centerX = window.innerWidth / 2; // Get screen center
+      items.forEach((item) => {
+        const itemRect = item.getBoundingClientRect();
+        const itemCenter = itemRect.left + itemRect.width / 2; // Get item center
+
+        // Calculate distance from center
+        const distance = Math.abs(centerX - itemCenter);
+
+        // Normalize distance (closer = bigger scale, farther = smaller)
+        const scaleFactor = gsap.utils.clamp(1, 1.4, 1.4 - distance / 1000);
+
+        // Apply scaling
+        gsap.to(item, {
+          scale: scaleFactor,
+          duration: 0.2,
+          ease: "power1.out",
+        });
+      });
+    }
 
     Draggable.create(".drag-proxy", {
       type: "x",
@@ -110,20 +135,25 @@ const CarouselSlide = () => {
         // Kill previous momentum animation (if any) when new drag starts
         if (momentumAnimation && momentumAnimation.isActive())
           momentumAnimation.kill();
+
+        // Create swell, shrink effect and skew
+        scaleItems(this.x);
       },
-      onDrag(e) {
-        // console.log("dragDistance: ", dragDistance);
-        const dragDistance = (this.startX - this.x) * 0.001;
+      onDrag() {
+        const dragDistance = (this.startX - this.x) * 0.0001;
         tlState?.progress(this.startProgress + dragDistance).pause();
 
         // Calculate velocity (difference between lastX and current X)
         velocity = this.x - lastX;
         lastX = this.x;
+
+        // Create swell, shrink effect
+        scaleItems(this.x);
       },
       onDragEnd() {
         const dragDirection = this.startX - this.x > 0 ? "to-r" : "to-l";
         // Apply momentum effect based on velocity
-        const momentumDistance = velocity * 0.05; // Scale velocity effect
+        const momentumDistance = velocity * 0.01; // Scale velocity effect
         const targetProgress = gsap.utils.clamp(
           0,
           1,
@@ -146,6 +176,13 @@ const CarouselSlide = () => {
             }
           },
         });
+
+        // Create swell, shrink effect
+        gsap.to(items, {
+          scale: 1,
+          duration: 0.5,
+          ease: "power2.out",
+        });
       },
     });
   }, [tlState]);
@@ -154,7 +191,7 @@ const CarouselSlide = () => {
     <div className="flex-1 flex justify-center items-center">
       <div className="w-full flex space-x-2 relative overflow-auto no-scrollbar">
         <div className="absolute invisible drag-proxy" />
-        {data?.slice(0, 5).map((film) => (
+        {data?.map((film) => (
           <div
             key={film.id}
             className="relative overflow-hidden horizontal-item"
