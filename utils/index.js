@@ -107,6 +107,7 @@ export function horizontalLoop(items, config) {
   tl.current = () => curIndex;
   tl.toIndex = (index, vars) => toIndex(index, vars);
   tl.times = times;
+
   tl.progress(1, true).progress(0, true); // pre-render for performance
   if (config.reversed) {
     tl.vars.onReverseComplete();

@@ -34,7 +34,6 @@ const CarouselSlide = () => {
   const { height } = useWindowSize();
 
   const fixedWidth = height * 0.35 * (19 / 6);
-  const [direction, setDirection] = useState<"to-l" | "to-r">("to-l");
   const [tlState, setTlState] = useState<gsap.core.Timeline | null>(null);
 
   useGSAP(
@@ -90,48 +89,72 @@ const CarouselSlide = () => {
     }
 
     // Control the timeline based on direction
-    if (direction === "to-l") {
-      timelineRef.current?.timeScale(1);
-      timelineRef.current.play();
-      tlState?.reverse();
-    } else if (direction === "to-r") {
-      timelineRef.current?.timeScale(-1);
-      tlState?.play();
-    }
-  }, [direction, data]);
+  }, [data]);
 
   useGSAP(() => {
-    if (!data) return;
-    const iteration = 0; // gets iterated when we scroll all the way to the end or start and wraps around - allows us to smoothly continue the playhead scrubbing in the correct direction.
+    if (!tlState) return;
+
+    let lastX = 0;
+    let velocity = 0;
+    let momentumAnimation: gsap.core.Tween | null = null;
 
     Draggable.create(".drag-proxy", {
       type: "x",
       trigger: ".horizontal-item",
       onPress() {
-        // this.startOffset = scrub.vars.offset;
-        console.log("onPress");
+        this.startProgress = tlState?.progress();
+        this.startX = this.x;
+        lastX = this.x;
+        velocity = 0;
+
+        // Kill previous momentum animation (if any) when new drag starts
+        if (momentumAnimation && momentumAnimation.isActive())
+          momentumAnimation.kill();
       },
       onDrag(e) {
-        // scrub.vars.offset = this.startOffset + (this.startX - this.x) * 0.001;
-        // scrub.invalidate().restart(); // same thing as we do in the ScrollTrigger's onUpdate
-        console.log("onDrag");
-        console.log(e.x, e.startX);
+        // console.log("dragDistance: ", dragDistance);
+        const dragDistance = (this.startX - this.x) * 0.001;
+        tlState?.progress(this.startProgress + dragDistance).pause();
+
+        // Calculate velocity (difference between lastX and current X)
+        velocity = this.x - lastX;
+        lastX = this.x;
       },
       onDragEnd() {
-        // scrollToOffset(scrub.vars.offset);
-        console.log("onDragEnd");
+        const dragDirection = this.startX - this.x > 0 ? "to-r" : "to-l";
+        // Apply momentum effect based on velocity
+        const momentumDistance = velocity * 0.05; // Scale velocity effect
+        const targetProgress = gsap.utils.clamp(
+          0,
+          1,
+          tlState.progress() - momentumDistance
+        );
+
+        console.log("Velocity:", velocity, "New Progress:", targetProgress);
+        momentumAnimation = gsap.to(tlState, {
+          progress: targetProgress,
+          duration: 1,
+          ease: "power2.out",
+          onComplete: () => {
+            if (dragDirection === "to-l") {
+              timelineRef.current?.timeScale(1);
+              timelineRef.current?.play();
+              tlState?.reverse();
+            } else if (dragDirection === "to-r") {
+              timelineRef.current?.timeScale(-1);
+              tlState?.play();
+            }
+          },
+        });
       },
     });
-  }, [data]);
+  }, [tlState]);
 
   return (
     <div className="flex-1 flex justify-center items-center">
-      <div
-        className="w-full flex space-x-2 relative overflow-auto no-scrollbar"
-        onClick={() => setDirection(direction === "to-r" ? "to-l" : "to-r")}
-      >
+      <div className="w-full flex space-x-2 relative overflow-auto no-scrollbar">
         <div className="absolute invisible drag-proxy" />
-        {data?.map((film) => (
+        {data?.slice(0, 5).map((film) => (
           <div
             key={film.id}
             className="relative overflow-hidden horizontal-item"
