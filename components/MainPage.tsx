@@ -259,7 +259,7 @@ const MainPage = () => {
         </div>
       </section>
 
-      <SceneContainer />
+      {/* <SceneContainer /> */}
 
       <section>
         <div className="outer bg-white dark:bg-black">

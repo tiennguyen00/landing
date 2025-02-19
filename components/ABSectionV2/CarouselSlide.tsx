@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Image from "next/image";
 import gsap from "gsap";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Draggable } from "gsap/Draggable";
 import { useWindowSize } from "@/utils/useScree";
 
@@ -44,6 +44,61 @@ const CarouselSlide = () => {
         ...config,
         reversed: true,
       });
+
+      tl.eventCallback("onUpdate", () => {
+        const progress = tl.progress(); // Get timeline progress (0 to 1)
+        const itemCount = items.length;
+        const centerIndex = Math.round(
+          (progress * (itemCount - 1) + 11) % itemCount
+        );
+
+        items.forEach((item, index) => {
+          const distanceFromCenter = Math.abs(index - centerIndex); // How far this item is from the center
+
+          // If the item is near the center, apply rotateY effect
+          if (distanceFromCenter <= 2) {
+            // Apply effect to center + neighbors
+            const rotateAmount = gsap.utils.mapRange(
+              0,
+              2,
+              0,
+              30,
+              distanceFromCenter
+            ); // More distance = less rotation
+            const isLeff = index < centerIndex;
+
+            gsap.to(item, {
+              rotateY:
+                distanceFromCenter === 0
+                  ? 0
+                  : distanceFromCenter === 1
+                  ? 25 * (isLeff ? 1 : -1)
+                  : 35 * (isLeff ? 1 : -1),
+              scale:
+                distanceFromCenter === 0
+                  ? 0.93
+                  : distanceFromCenter === 1
+                  ? 0.96
+                  : 1.1,
+              x:
+                distanceFromCenter === 0
+                  ? 0
+                  : distanceFromCenter === 1
+                  ? 37 * (isLeff ? 1 : -1)
+                  : 40 * (isLeff ? 1 : -1),
+              ease: "power1.out",
+            });
+          } else {
+            gsap.to(item, {
+              rotateY: 0,
+              x: 0,
+              scale: 1,
+              ease: "power2.out",
+            });
+          }
+        });
+      });
+
       setTlState(tl);
 
       return () => {
@@ -91,37 +146,12 @@ const CarouselSlide = () => {
     // Control the timeline based on direction
   }, [data]);
 
-  // Function to dynamically scale items based on drag position
-
   useGSAP(() => {
     if (!tlState) return;
 
     let lastX = 0;
     let velocity = 0;
     let momentumAnimation: gsap.core.Tween | null = null;
-
-    const items = gsap.utils.toArray(".horizontal-item") as HTMLElement[];
-
-    function scaleItems(dragX: number) {
-      const centerX = window.innerWidth / 2; // Get screen center
-      items.forEach((item) => {
-        const itemRect = item.getBoundingClientRect();
-        const itemCenter = itemRect.left + itemRect.width / 2; // Get item center
-
-        // Calculate distance from center
-        const distance = Math.abs(centerX - itemCenter);
-
-        // Normalize distance (closer = bigger scale, farther = smaller)
-        const scaleFactor = gsap.utils.clamp(1, 1.4, 1.4 - distance / 1000);
-
-        // Apply scaling
-        gsap.to(item, {
-          scale: scaleFactor,
-          duration: 0.2,
-          ease: "power1.out",
-        });
-      });
-    }
 
     Draggable.create(".drag-proxy", {
       type: "x",
@@ -137,7 +167,7 @@ const CarouselSlide = () => {
           momentumAnimation.kill();
 
         // Create swell, shrink effect and skew
-        scaleItems(this.x);
+        // applyRotateEffect(this.x);
       },
       onDrag() {
         const dragDistance = (this.startX - this.x) * 0.0001;
@@ -148,7 +178,7 @@ const CarouselSlide = () => {
         lastX = this.x;
 
         // Create swell, shrink effect
-        scaleItems(this.x);
+        // applyRotateEffect(this.x);
       },
       onDragEnd() {
         const dragDirection = this.startX - this.x > 0 ? "to-r" : "to-l";
@@ -160,7 +190,6 @@ const CarouselSlide = () => {
           tlState.progress() - momentumDistance
         );
 
-        console.log("Velocity:", velocity, "New Progress:", targetProgress);
         momentumAnimation = gsap.to(tlState, {
           progress: targetProgress,
           duration: 1,
@@ -176,22 +205,20 @@ const CarouselSlide = () => {
             }
           },
         });
-
-        // Create swell, shrink effect
-        gsap.to(items, {
-          scale: 1,
-          duration: 0.5,
-          ease: "power2.out",
-        });
       },
     });
   }, [tlState]);
 
   return (
     <div className="flex-1 flex justify-center items-center">
-      <div className="w-full flex space-x-2 relative overflow-auto no-scrollbar">
+      <div
+        className="w-full flex space-x-2 relative overflow-auto py-6 no-scrollbar"
+        style={{
+          perspective: "1200px",
+        }}
+      >
         <div className="absolute invisible drag-proxy" />
-        {data?.map((film) => (
+        {data?.map((film, idx) => (
           <div
             key={film.id}
             className="relative overflow-hidden horizontal-item"
@@ -199,6 +226,7 @@ const CarouselSlide = () => {
               height: `${(fixedWidth * 9) / 16}px`,
             }}
           >
+            <h1>{idx}</h1>
             <Image
               className="absolute h-full aspect-[16/9] horizontal-image"
               style={{
