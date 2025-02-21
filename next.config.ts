@@ -18,6 +18,24 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    turbo: {
+      rules: {
+        "*.glsl": {
+          loaders: ["raw-loader"],
+        },
+      },
+    },
+  },
+  webpack: (config, { isServer }) => {
+    config.module.rules.push({
+      test: /\.(glsl|vert|frag|fragment)$/,
+      use: "raw-loader",
+      exclude: /node_modules/,
+    });
+
+    return config;
+  },
 };
 
 export default nextConfig;
