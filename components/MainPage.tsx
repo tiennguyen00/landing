@@ -10,6 +10,7 @@ import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
 import SceneContainer from "./Scene";
 import ABSectionV2 from "./ABSectionV2";
+import ABSection from "./ABSection";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -253,7 +254,7 @@ const MainPage = () => {
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
-              <ABSectionV2 />
+              <ABSection />
             </div>
           </div>
         </div>

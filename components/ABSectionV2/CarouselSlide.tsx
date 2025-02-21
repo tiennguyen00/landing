@@ -45,60 +45,6 @@ const CarouselSlide = () => {
         reversed: true,
       });
 
-      tl.eventCallback("onUpdate", () => {
-        const progress = tl.progress(); // Get timeline progress (0 to 1)
-        const itemCount = items.length;
-        const centerIndex = Math.round(
-          (progress * (itemCount - 1) + 11) % itemCount
-        );
-
-        items.forEach((item, index) => {
-          const distanceFromCenter = Math.abs(index - centerIndex); // How far this item is from the center
-
-          // If the item is near the center, apply rotateY effect
-          if (distanceFromCenter <= 2) {
-            // Apply effect to center + neighbors
-            const rotateAmount = gsap.utils.mapRange(
-              0,
-              2,
-              0,
-              30,
-              distanceFromCenter
-            ); // More distance = less rotation
-            const isLeff = index < centerIndex;
-
-            gsap.to(item, {
-              rotateY:
-                distanceFromCenter === 0
-                  ? 0
-                  : distanceFromCenter === 1
-                  ? 25 * (isLeff ? 1 : -1)
-                  : 35 * (isLeff ? 1 : -1),
-              scale:
-                distanceFromCenter === 0
-                  ? 0.93
-                  : distanceFromCenter === 1
-                  ? 0.96
-                  : 1.1,
-              x:
-                distanceFromCenter === 0
-                  ? 0
-                  : distanceFromCenter === 1
-                  ? 37 * (isLeff ? 1 : -1)
-                  : 40 * (isLeff ? 1 : -1),
-              ease: "power1.out",
-            });
-          } else {
-            gsap.to(item, {
-              rotateY: 0,
-              x: 0,
-              scale: 1,
-              ease: "power2.out",
-            });
-          }
-        });
-      });
-
       setTlState(tl);
 
       return () => {
@@ -167,7 +113,6 @@ const CarouselSlide = () => {
           momentumAnimation.kill();
 
         // Create swell, shrink effect and skew
-        // applyRotateEffect(this.x);
       },
       onDrag() {
         const dragDistance = (this.startX - this.x) * 0.0001;
@@ -178,7 +123,6 @@ const CarouselSlide = () => {
         lastX = this.x;
 
         // Create swell, shrink effect
-        // applyRotateEffect(this.x);
       },
       onDragEnd() {
         const dragDirection = this.startX - this.x > 0 ? "to-r" : "to-l";
