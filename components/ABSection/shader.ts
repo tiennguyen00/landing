@@ -24,9 +24,7 @@ void main()
   float aspect = uTextureAspect;
   // Adjust UV coordinates to maintain texture aspect ratio
   vec2 adjustedUV = vUv;
-  float time = 0.;
-  time += uTime;
-  float positionMap = mod(0.1 * time, 1.);
+  float positionMap = mod(0.1 * uTime, 1.);
   adjustedUV.x = (vUv.x - positionMap) / aspect + positionMap;  // Changed * to /
 
   // Final color

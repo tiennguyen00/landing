@@ -4,25 +4,27 @@ import axios from "axios";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { fragmentShader, vertexShader } from "./shader";
-import { OrbitControls, useTexture } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useAspect, useTexture } from "@react-three/drei";
+import { useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import Draggable from "gsap/Draggable";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
-import { time } from "console";
 
 gsap.registerPlugin(Draggable);
 
 const Item = ({
   data,
   uniforms,
+  itemWidth,
   ...rest
 }: {
   data: Film;
   uniforms: Record<string, THREE.Uniform>;
+  itemWidth: number;
 } & THREE.MeshProps) => {
   const texture = useTexture(data.movie_banner);
+  const scale = useAspect(texture.image.width, texture.image.height, 1);
 
   const uniform = useMemo(() => {
     return {
@@ -34,7 +36,7 @@ const Item = ({
 
   return (
     <mesh {...rest}>
-      <planeGeometry args={[2, 3, 15, 15]} />
+      <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />
       <shaderMaterial
         fragmentShader={fragmentShader}
         vertexShader={vertexShader}
@@ -80,9 +82,10 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         const x = mapRange(e.clientX);
         const deltaX = Math.abs(x - dragStartX.current);
 
-        gsap.to(groupRef.current.position, {
+        gsap.to(groupRef.current!.position, {
           x:
-            groupRef.current.position.x + deltaX * Math.sign(e.movementX) * 0.3,
+            groupRef.current!.position.x +
+            deltaX * Math.sign(e.movementX) * 0.3,
           duration: 0.5,
           ease: "power2.out",
         });
@@ -107,7 +110,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     groupRef.current?.position.add(new THREE.Vector3(-0.005 * direction, 0, 0));
 
     // Handle infinite loop
-    const itemWidth = 2.05; // Width of each item including gap
     const totalWidth = itemWidth * dataToShow?.length;
 
     // Reposition children when they move too far
@@ -135,10 +137,18 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     }
   });
 
+  const itemWidth = 3;
+
   return (
-    <group ref={groupRef}>
+    <group position-x={-10} ref={groupRef}>
       {dataToShow?.map((i, idx) => (
-        <Item key={i.id} data={i} position-x={idx * 2.05} uniforms={uniforms} />
+        <Item
+          key={i.id}
+          data={i}
+          position-x={idx * (itemWidth + 0.05)}
+          itemWidth={itemWidth}
+          uniforms={uniforms}
+        />
       ))}
     </group>
   );
