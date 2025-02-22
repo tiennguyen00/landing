@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import CarouselSlide from "./CarouselSlide";
+import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -87,9 +88,9 @@ const ABSection = () => {
   };
 
   return (
-    <div className="w-full  min-h-screen overflow-hidden flex flex-col items-center relative padding">
-      {/* <div
-        className="flex flex-col items-center text-center headline-container mx-auto dark:text-white "
+    <div className="w-full min-h-screen overflow-hidden flex flex-col items-center relative padding !px-0">
+      <div
+        className="flex flex-col absolute items-center text-center headline-container mx-auto dark:text-white "
         ref={headlineRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -131,7 +132,7 @@ const ABSection = () => {
             </div>
           </div>
         </h1>
-      </div> */}
+      </div>
 
       <CarouselSlide />
     </div>

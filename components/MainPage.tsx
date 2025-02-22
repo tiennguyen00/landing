@@ -239,7 +239,7 @@ const MainPage = () => {
   return (
     <>
       <Navbar />
-      <SidePag isSliding={isSliding} quantity={4} duration={duration} />
+      <SidePag isSliding={isSliding} quantity={3} duration={duration} />
 
       {/* <section>
         <div className="outer bg-white dark:bg-black">
