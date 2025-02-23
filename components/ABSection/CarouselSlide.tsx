@@ -7,57 +7,28 @@ import axios from "axios";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { fragmentShader, vertexShader } from "./shader";
-import { useAspect, useTexture, OrthographicCamera } from "@react-three/drei";
+import {
+  useAspect,
+  useTexture,
+  OrthographicCamera,
+  useFBO,
+} from "@react-three/drei";
 import { useMemo, useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
-import Draggable from "gsap/Draggable";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
-
-gsap.registerPlugin(Draggable);
-
-const Brush = ({
-  mouse,
-  max,
-  meshes,
-}: {
-  mouse: THREE.Vector2;
-  max: number;
-  meshes: THREE.Mesh[];
-  meshes: any;
-}) => {
-  const texture = useTexture("/img/brush.png");
-  const { scene } = useThree();
-
-  useEffect(() => {
-    for (let i = 0; i < max; i++) {
-      const m = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        depthTest: false,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      });
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(30, 30, 1, 1), m);
-      mesh.rotation.z = Math.random() * Math.PI * 2;
-      mesh.visible = false;
-      scene.add(mesh);
-      meshes.current.push(mesh);
-    }
-  }, []);
-
-  return <></>;
-};
 
 const Item = ({
   data,
   uniforms,
   itemWidth,
+  test,
   ...rest
 }: {
   data: Film;
   uniforms: Record<string, THREE.Uniform>;
   itemWidth: number;
+  test: (e: any) => void;
 } & THREE.MeshProps) => {
   const texture = useTexture(data.movie_banner);
   const scale = useAspect(texture.image.width, texture.image.height, 1);
@@ -67,11 +38,26 @@ const Item = ({
       ...uniforms,
       uTexture: new THREE.Uniform(texture),
       uTextureAspect: new THREE.Uniform(2000 / 683),
+      uCurrentActive: new THREE.Uniform(false),
+      uMouseUV: new THREE.Uniform(new THREE.Vector2()),
     };
   }, [texture]);
 
   return (
-    <mesh {...rest}>
+    <mesh
+      onPointerEnter={() => {
+        uniform.uCurrentActive.value = true;
+      }}
+      onPointerLeave={() => {
+        uniform.uCurrentActive.value = false;
+      }}
+      onPointerMove={(e) => {
+        test(e);
+        // console.log("pointer over", e.uv);
+        uniform.uMouseUV.value = new THREE.Vector2(e.uv.x, e.uv.y);
+      }}
+      {...rest}
+    >
       <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />
       <shaderMaterial
         fragmentShader={fragmentShader}
@@ -90,20 +76,44 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const direction = useRef(1);
   const dragState = useRef<"idle" | "dragging">("idle");
 
-  const max = 50;
+  const max = 20;
   const mouse = useRef(new THREE.Vector2());
   const prevMouse = useRef(new THREE.Vector2());
   const currentWave = useRef(0);
   const meshes = useRef<THREE.Mesh[]>([]);
+  const textureBrush = useTexture("/img/brush.png");
+  const fboScene = useRef(new THREE.Scene());
+  const itemWidth = 300;
+
+  const test = (e: any) => {
+    mouse.current.x = (e.uv.x - 0.5) * itemWidth;
+    mouse.current.y = (e.uv.y - 0.5) * itemWidth * 1.5;
+  };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.x = e.clientX - width / 2;
-      mouse.current.y = height / 2 - e.clientY;
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    for (let i = 0; i < max; i++) {
+      const m = new THREE.MeshBasicMaterial({
+        map: textureBrush,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(30, 30, 1, 1), m);
+      mesh.rotation.z = Math.random() * Math.PI * 2;
+      mesh.visible = false;
+      fboScene.current.add(mesh);
+      meshes.current.push(mesh);
+    }
+
+    // const handleMouseMove = (e: MouseEvent) => {
+    //   mouse.current.x = e.clientX - width / 2;
+    //   mouse.current.y = height / 2 - e.clientY;
+    // };
+    // window.addEventListener("mousemove", handleMouseMove);
+    // return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
   const setNewWave = (x, y, index) => {
     const mesh = meshes.current[index];
     mesh.visible = true;
@@ -114,8 +124,8 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   };
   const trackMousePos = () => {
     if (
-      Math.abs(mouse.current.x - prevMouse.current.x) < 4 &&
-      Math.abs(mouse.current.y - prevMouse.current.y) < 4
+      Math.abs(mouse.current.x - prevMouse.current.x) < 2 &&
+      Math.abs(mouse.current.y - prevMouse.current.y) < 2
     ) {
       // currentMouse.current = mouse.current.x;
     } else {
@@ -134,6 +144,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         y: 0,
       }),
       uDirection: new THREE.Uniform(1),
+      uDisplacement: new THREE.Uniform(null),
     };
   }, []);
   const mapRange = gsap.utils.mapRange(
@@ -143,37 +154,69 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     (1 * viewport.width) / 2
   );
 
-  useGSAP(() => {
-    Draggable.create(".drag-proxy", {
-      type: "x",
-      trigger: ".drag-area",
-      onPress(e) {
-        prevDragX.current = mapRange(e.clientX);
-      },
-      onDrag(e) {
-        const x = mapRange(e.clientX);
-        let deltaX = x - prevDragX.current;
-        direction.current = Math.sign(deltaX);
-        uniforms.uDirection.value = direction.current;
-        deltaX = Math.abs(deltaX);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
 
-        gsap.to(groupRef.current!.position, {
-          x:
-            groupRef.current!.position.x +
-            deltaX * uniforms.uDirection.value * 20,
-          duration: 0.5,
-          ease: "power2.out",
-        });
+  useEffect(() => {
+    const container = document.body;
+    if (!container) return;
 
-        dragState.current = "dragging";
-        uniforms.uDelta.value.x = Math.min(deltaX * 50, 80);
-      },
-      onDragEnd(e) {
-        dragState.current = "idle";
-      },
-    });
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging.current = true;
+      prevDragX.current = mapRange(e.clientX);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const x = mapRange(e.clientX);
+      let deltaX = x - prevDragX.current;
+      direction.current = Math.sign(deltaX);
+      uniforms.uDirection.value = direction.current;
+      deltaX = Math.abs(deltaX);
+
+      gsap.to(groupRef.current!.position, {
+        x:
+          groupRef.current!.position.x + deltaX * uniforms.uDirection.value * 8,
+        duration: 0.5,
+        ease: "power2.out",
+      });
+
+      dragState.current = "dragging";
+      uniforms.uDelta.value.x = Math.min(deltaX * 50, 120);
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      dragState.current = "idle";
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
   }, []);
+
+  const renderTarget = useFBO(itemWidth, itemWidth * 1.5, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+  });
+
   useFrame((state, clock) => {
+    // using fbo rto get another render target
+    const { gl, camera, scene } = state;
+    gl.setRenderTarget(renderTarget);
+    // gl.setClearColor(0xff0000);
+    gl.render(fboScene.current, camera);
+    uniforms.uDisplacement.value = renderTarget.texture;
+    gl.setRenderTarget(null);
+
     trackMousePos();
     meshes.current.forEach((mesh) => {
       if (mesh.visible) {
@@ -184,6 +227,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         if (mesh.material.opacity < 0.02) mesh.visible = false;
       }
     });
+    // ==============================
 
     uniforms.uTime.value += 0.001 * direction.current;
     groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
@@ -212,31 +256,27 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     if (dragState.current === "idle" && uniforms.uDelta.value.x !== 0) {
-      if (uniforms.uDelta.value.x > 20) {
-        uniforms.uDelta.value.x -= 20;
-      } else if (uniforms.uDelta.value.x < -20) {
-        uniforms.uDelta.value.x += 20;
+      if (uniforms.uDelta.value.x > 5) {
+        uniforms.uDelta.value.x -= 5;
+      } else if (uniforms.uDelta.value.x < -5) {
+        uniforms.uDelta.value.x += 5;
       }
     }
   });
 
-  const itemWidth = 300;
-
   return (
-    <>
-      <Brush mouse={mouse} max={max} meshes={meshes} />
-      <group position-x={-10} ref={groupRef}>
-        {dataToShow?.map((i, idx) => (
-          <Item
-            key={i.id}
-            data={i}
-            position-x={idx * (itemWidth + 10)}
-            itemWidth={itemWidth}
-            uniforms={uniforms}
-          />
-        ))}
-      </group>
-    </>
+    <group position-x={-10} ref={groupRef}>
+      {dataToShow?.map((i, idx) => (
+        <Item
+          key={i.id}
+          data={i}
+          position-x={idx * (itemWidth + 10)}
+          itemWidth={itemWidth}
+          uniforms={uniforms}
+          test={test}
+        />
+      ))}
+    </group>
   );
 };
 
@@ -256,27 +296,20 @@ const CarouselSlide = () => {
   const dataToShow = data?.slice(0, 20);
 
   return (
-    <>
-      <Canvas style={{ width: "100%", height: "100vh" }}>
-        <color args={["#000"]} attach="background" />
-        <OrthographicCamera
-          makeDefault
-          left={width / -2}
-          right={width / 2}
-          top={height / 2}
-          bottom={height / -2}
-          near={-1000}
-          far={1000}
-        />
-        <axesHelper />
-        <Experience dataToShow={dataToShow} />
-      </Canvas>
-      <div className="absolute invisible drag-proxy" />
-      <div className="fixed w-full h-full flex justify-center items-center bottom-0 drag-area">
-        {/* <div className="w-[10%] absolute left-0 h-full bg-gradient-to-l from-transparent to-white dark:to-black"></div>
-        <div className="w-[10%] absolute right-0 h-full bg-gradient-to-r from-transparent to-white dark:to-black"></div> */}
-      </div>
-    </>
+    <Canvas style={{ width: "100%", height: "100vh" }}>
+      <color args={["#000"]} attach="background" />
+      <OrthographicCamera
+        makeDefault
+        left={width / -2}
+        right={width / 2}
+        top={height / 2}
+        bottom={height / -2}
+        near={-1000}
+        far={1000}
+      />
+      <axesHelper />
+      <Experience dataToShow={dataToShow} />
+    </Canvas>
   );
 };
 
