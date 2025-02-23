@@ -88,8 +88,8 @@ const ABSection = () => {
   };
 
   return (
-    <div className="w-full min-h-screen overflow-hidden flex flex-col items-center relative padding !px-0">
-      <div
+    <div className="w-full min-h-screen overflow-hidden flex flex-col items-center relative !px-0">
+      {/* <div
         className="flex flex-col absolute items-center text-center headline-container mx-auto dark:text-white "
         ref={headlineRef}
         onMouseMove={handleMouseMove}
@@ -132,7 +132,7 @@ const ABSection = () => {
             </div>
           </div>
         </h1>
-      </div>
+      </div> */}
 
       <CarouselSlide />
     </div>
