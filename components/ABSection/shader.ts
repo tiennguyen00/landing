@@ -26,23 +26,18 @@ float PI = 3.141592653589793238;
 void main()
 {
   float aspect = uTextureAspect;
-  // Adjust UV coordinates to maintain texture aspect ratio
   vec2 adjustedUV = vUv;
   float positionMap = mod(uTime, 1.);
-  adjustedUV.x = (vUv.x - positionMap) / aspect + positionMap;  // Changed * to /
+  adjustedUV.x = (vUv.x - positionMap) / aspect * 0.7 + positionMap; 
 
-  vec4 displacement = texture(uDisplacement, adjustedUV);
+  vec4 displacement = texture(uDisplacement, vUv);
   float theta = displacement.r * 2. * PI;
   vec2 dir = vec2(cos(theta), sin(theta));
 
-  vec2 uv = adjustedUV;
-  uv = adjustedUV + dir * displacement.r;
+  // vec2 uv = adjustedUV;
+  vec2 uv = adjustedUV + dir * displacement.r * 0.1;
 
   // Final color
-  if (uCurrentActive) {
-    gl_FragColor = texture(uTexture, uv);
-  } else {
-      gl_FragColor = texture(uTexture, adjustedUV);
-  }
+  gl_FragColor = texture(uTexture, uv);
 }
 `;

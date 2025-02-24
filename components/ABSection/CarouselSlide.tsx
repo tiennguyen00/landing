@@ -31,13 +31,17 @@ const Item = ({
   test: (e: any) => void;
 } & THREE.MeshProps) => {
   const texture = useTexture(data.movie_banner);
-  const scale = useAspect(texture.image.width, texture.image.height, 1);
+  const { viewport } = useThree();
+
+  // const scale = useAspect(texture.image.width, texture.image.height, 1);
 
   const uniform = useMemo(() => {
     return {
       ...uniforms,
       uTexture: new THREE.Uniform(texture),
-      uTextureAspect: new THREE.Uniform(2000 / 683),
+      uTextureAspect: new THREE.Uniform(
+        texture.image.width / texture.image.height
+      ),
       uCurrentActive: new THREE.Uniform(false),
       uMouseUV: new THREE.Uniform(new THREE.Vector2()),
     };
@@ -52,7 +56,10 @@ const Item = ({
         uniform.uCurrentActive.value = false;
       }}
       onPointerMove={(e) => {
-        test(e);
+        const x = e.uv.x - 0.5;
+        const y = e.uv.y - 0.5;
+
+        test(x, y);
         // console.log("pointer over", e.uv);
         uniform.uMouseUV.value = new THREE.Vector2(e.uv.x, e.uv.y);
       }}
@@ -85,9 +92,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const fboScene = useRef(new THREE.Scene());
   const itemWidth = 300;
 
-  const test = (e: any) => {
-    mouse.current.x = (e.uv.x - 0.5) * itemWidth;
-    mouse.current.y = (e.uv.y - 0.5) * itemWidth * 1.5;
+  const test = (x, y) => {
+    mouse.current.x = x * width;
+    mouse.current.y = y * height;
   };
 
   useEffect(() => {
@@ -124,8 +131,8 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   };
   const trackMousePos = () => {
     if (
-      Math.abs(mouse.current.x - prevMouse.current.x) < 2 &&
-      Math.abs(mouse.current.y - prevMouse.current.y) < 2
+      Math.abs(mouse.current.x - prevMouse.current.x) < 4 &&
+      Math.abs(mouse.current.y - prevMouse.current.y) < 4
     ) {
       // currentMouse.current = mouse.current.x;
     } else {
@@ -202,7 +209,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     };
   }, []);
 
-  const renderTarget = useFBO(itemWidth, itemWidth * 1.5, {
+  const renderTarget = useFBO(width, height, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,
@@ -212,7 +219,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     // using fbo rto get another render target
     const { gl, camera, scene } = state;
     gl.setRenderTarget(renderTarget);
-    // gl.setClearColor(0xff0000);
+    gl.setClearColor(0xff0000);
     gl.render(fboScene.current, camera);
     uniforms.uDisplacement.value = renderTarget.texture;
     gl.setRenderTarget(null);
@@ -229,8 +236,8 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
     // ==============================
 
-    uniforms.uTime.value += 0.001 * direction.current;
-    groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
+    // uniforms.uTime.value += 0.001 * direction.current;
+    // groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
@@ -293,7 +300,7 @@ const CarouselSlide = () => {
       }),
   });
 
-  const dataToShow = data?.slice(0, 20);
+  const dataToShow = data?.slice(0, 1);
 
   return (
     <Canvas style={{ width: "100%", height: "100vh" }}>
