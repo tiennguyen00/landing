@@ -241,7 +241,7 @@ const MainPage = () => {
       <Navbar />
       <SidePag isSliding={isSliding} quantity={3} duration={duration} />
 
-      {/* <section>
+      <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
@@ -249,7 +249,7 @@ const MainPage = () => {
             </div>
           </div>
         </div>
-      </section> */}
+      </section>
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">

@@ -17,22 +17,23 @@ import { useMemo, useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
+import { useTheme } from "@/app/providers";
 
 const Item = ({
   data,
   uniforms,
   itemWidth,
   test,
+  meshes,
   ...rest
 }: {
   data: Film;
   uniforms: Record<string, THREE.Uniform>;
   itemWidth: number;
   test: (e: any) => void;
+  meshes: THREE.Mesh[];
 } & THREE.MeshProps) => {
   const texture = useTexture(data.movie_banner);
-  const { viewport } = useThree();
-
   // const scale = useAspect(texture.image.width, texture.image.height, 1);
 
   const uniform = useMemo(() => {
@@ -42,26 +43,25 @@ const Item = ({
       uTextureAspect: new THREE.Uniform(
         texture.image.width / texture.image.height
       ),
-      uCurrentActive: new THREE.Uniform(false),
-      uMouseUV: new THREE.Uniform(new THREE.Vector2()),
+      uCurrentHover: new THREE.Uniform(false),
+      uCurrentAim: new THREE.Uniform(false),
     };
   }, [texture]);
 
   return (
     <mesh
       onPointerEnter={() => {
-        uniform.uCurrentActive.value = true;
+        uniform.uCurrentHover.value = true;
+        uniform.uCurrentAim.value = true;
       }}
       onPointerLeave={() => {
-        uniform.uCurrentActive.value = false;
+        uniform.uCurrentHover.value = false;
       }}
       onPointerMove={(e) => {
         const x = e.uv.x - 0.5;
         const y = e.uv.y - 0.5;
 
         test(x, y);
-        // console.log("pointer over", e.uv);
-        uniform.uMouseUV.value = new THREE.Vector2(e.uv.x, e.uv.y);
       }}
       {...rest}
     >
@@ -83,7 +83,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const direction = useRef(1);
   const dragState = useRef<"idle" | "dragging">("idle");
 
-  const max = 20;
+  const max = 50;
   const mouse = useRef(new THREE.Vector2());
   const prevMouse = useRef(new THREE.Vector2());
   const currentWave = useRef(0);
@@ -126,13 +126,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     mesh.visible = true;
     mesh.position.x = x;
     mesh.position.y = y;
-    mesh.scale.x = mesh.scale.y = 1;
-    mesh.material.opacity = 1;
+    mesh.scale.x = mesh.scale.y = 5;
+    mesh.material.opacity = 0.5;
   };
   const trackMousePos = () => {
     if (
-      Math.abs(mouse.current.x - prevMouse.current.x) < 4 &&
-      Math.abs(mouse.current.y - prevMouse.current.y) < 4
+      Math.abs(mouse.current.x - prevMouse.current.x) < 5 &&
+      Math.abs(mouse.current.y - prevMouse.current.y) < 5
     ) {
       // currentMouse.current = mouse.current.x;
     } else {
@@ -184,7 +184,8 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
 
       gsap.to(groupRef.current!.position, {
         x:
-          groupRef.current!.position.x + deltaX * uniforms.uDirection.value * 8,
+          groupRef.current!.position.x +
+          deltaX * uniforms.uDirection.value * 15,
         duration: 0.5,
         ease: "power2.out",
       });
@@ -219,7 +220,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     // using fbo rto get another render target
     const { gl, camera, scene } = state;
     gl.setRenderTarget(renderTarget);
-    gl.setClearColor(0xff0000);
+    // gl.setClearColor(0xff0000);
     gl.render(fboScene.current, camera);
     uniforms.uDisplacement.value = renderTarget.texture;
     gl.setRenderTarget(null);
@@ -229,15 +230,15 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       if (mesh.visible) {
         mesh.rotation.z += 0.02;
         mesh.material.opacity *= 0.98;
-        mesh.scale.x = 0.98 * mesh.scale.x + 0.1;
+        mesh.scale.x = 0.99 * mesh.scale.x + 0.25;
         mesh.scale.y = mesh.scale.x;
-        if (mesh.material.opacity < 0.02) mesh.visible = false;
+        if (mesh.material.opacity < 0.002) mesh.visible = false;
       }
     });
     // ==============================
 
-    // uniforms.uTime.value += 0.001 * direction.current;
-    // groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
+    uniforms.uTime.value += 0.001 * direction.current;
+    groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
@@ -281,6 +282,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
           itemWidth={itemWidth}
           uniforms={uniforms}
           test={test}
+          meshes={meshes.current}
         />
       ))}
     </group>
@@ -300,11 +302,12 @@ const CarouselSlide = () => {
       }),
   });
 
-  const dataToShow = data?.slice(0, 1);
+  const dataToShow = data?.slice(0, 20);
+  const { theme } = useTheme();
 
   return (
     <Canvas style={{ width: "100%", height: "100vh" }}>
-      <color args={["#000"]} attach="background" />
+      <color args={[theme === "dark" ? "#000" : "#fff"]} attach="background" />
       <OrthographicCamera
         makeDefault
         left={width / -2}
