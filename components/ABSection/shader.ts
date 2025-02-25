@@ -18,7 +18,6 @@ export const fragmentShader = `
 varying vec2 vUv;
 uniform sampler2D uTexture;
 uniform sampler2D uDisplacement;
-uniform bool uCurrentHover;
 uniform float uTextureAspect;
 uniform float uTime;
 float PI = 3.141592653589793238;
@@ -34,12 +33,8 @@ void main()
   vec2 dir = vec2(cos(theta), sin(theta));
 
   vec2 uv = adjustedUV;
-  if(uCurrentHover){
-    uv = adjustedUV + dir * displacement.r * 0.1;
-  }
- 
+  uv = adjustedUV + dir * displacement.r * 0.1;
 
-  // Final color
   gl_FragColor = texture(uTexture, uv);
 }
 `;

@@ -20,21 +20,37 @@ import { useWindowSize } from "@/utils/useScree";
 import { useTheme } from "@/app/providers";
 
 const Item = ({
+  index,
   data,
   uniforms,
   itemWidth,
-  test,
-  meshes,
   ...rest
 }: {
+  index: number;
   data: Film;
   uniforms: Record<string, THREE.Uniform>;
   itemWidth: number;
-  test: (e: any) => void;
-  meshes: THREE.Mesh[];
 } & THREE.MeshProps) => {
-  const texture = useTexture(data.movie_banner);
   // const scale = useAspect(texture.image.width, texture.image.height, 1);
+  const { width, height } = useWindowSize();
+  const texture = useTexture(data.movie_banner);
+  const renderTarget = useFBO(width, height, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+  });
+  const max = 50;
+  const mouse = useRef(new THREE.Vector2());
+  const prevMouse = useRef(new THREE.Vector2());
+  const currentWave = useRef(0);
+  const meshes = useRef<THREE.Mesh[]>([]);
+  const textureBrush = useTexture("/img/brush.png");
+  const fboScene = useRef(new THREE.Scene());
+
+  const test = (x, y, index) => {
+    mouse.current.x = x * width;
+    mouse.current.y = y * height;
+  };
 
   const uniform = useMemo(() => {
     return {
@@ -43,59 +59,10 @@ const Item = ({
       uTextureAspect: new THREE.Uniform(
         texture.image.width / texture.image.height
       ),
-      uCurrentHover: new THREE.Uniform(false),
-      uCurrentAim: new THREE.Uniform(false),
+      uIndex: new THREE.Uniform(index),
+      uDisplacement: new THREE.Uniform(null),
     };
   }, [texture]);
-
-  return (
-    <mesh
-      onPointerEnter={() => {
-        uniform.uCurrentHover.value = true;
-        uniform.uCurrentAim.value = true;
-      }}
-      onPointerLeave={() => {
-        uniform.uCurrentHover.value = false;
-      }}
-      onPointerMove={(e) => {
-        const x = e.uv.x - 0.5;
-        const y = e.uv.y - 0.5;
-
-        test(x, y);
-      }}
-      {...rest}
-    >
-      <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />
-      <shaderMaterial
-        fragmentShader={fragmentShader}
-        vertexShader={vertexShader}
-        uniforms={uniform}
-      />
-    </mesh>
-  );
-};
-
-const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
-  const { width, height } = useWindowSize();
-  const { viewport } = useThree();
-  const groupRef = useRef<THREE.Group>(null);
-  const prevDragX = useRef(0);
-  const direction = useRef(1);
-  const dragState = useRef<"idle" | "dragging">("idle");
-
-  const max = 50;
-  const mouse = useRef(new THREE.Vector2());
-  const prevMouse = useRef(new THREE.Vector2());
-  const currentWave = useRef(0);
-  const meshes = useRef<THREE.Mesh[]>([]);
-  const textureBrush = useTexture("/img/brush.png");
-  const fboScene = useRef(new THREE.Scene());
-  const itemWidth = 300;
-
-  const test = (x, y) => {
-    mouse.current.x = x * width;
-    mouse.current.y = y * height;
-  };
 
   useEffect(() => {
     for (let i = 0; i < max; i++) {
@@ -112,13 +79,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       fboScene.current.add(mesh);
       meshes.current.push(mesh);
     }
-
-    // const handleMouseMove = (e: MouseEvent) => {
-    //   mouse.current.x = e.clientX - width / 2;
-    //   mouse.current.y = height / 2 - e.clientY;
-    // };
-    // window.addEventListener("mousemove", handleMouseMove);
-    // return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   const setNewWave = (x, y, index) => {
@@ -143,6 +103,75 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     prevMouse.current.y = mouse.current.y;
   };
 
+  useFrame((state) => {
+    const { gl, camera, scene } = state;
+    gl.setRenderTarget(renderTarget);
+    // gl.setClearColor(0xff0000);
+    gl.render(fboScene.current, camera);
+    uniform.uDisplacement.value = renderTarget.texture;
+    gl.setRenderTarget(null);
+
+    trackMousePos();
+    // Count visible meshes first
+    let stillVisibleCount = meshes.current.reduce(
+      (count, mesh) => count + (mesh.visible ? 1 : 0),
+      0
+    );
+    meshes.current.forEach((mesh, idx) => {
+      if (mesh.visible) {
+        mesh.rotation.z += 0.02;
+        mesh.material.opacity *= 0.98;
+        mesh.scale.x = 0.99 * mesh.scale.x + 0.25;
+        mesh.scale.y = mesh.scale.x;
+        if (mesh.material.opacity < 0.002) {
+          mesh.visible = false;
+          stillVisibleCount--;
+          if (stillVisibleCount === 0) {
+            uniforms.uCurrentAnim.value = false;
+            console.log("Last mesh just became invisible");
+          }
+        }
+      }
+    });
+  });
+
+  return (
+    <mesh
+      onPointerEnter={() => {
+        uniform.uCurrentIndex.value = index;
+      }}
+      onPointerLeave={() => {
+        uniform.uPrevIndex.value = index;
+      }}
+      onPointerMove={(e) => {
+        uniform.uCurrentAnim.value = true;
+        const x = e.uv.x - 0.5;
+        const y = e.uv.y - 0.5;
+        test(x, y, index);
+      }}
+      {...rest}
+    >
+      <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />
+      <shaderMaterial
+        fragmentShader={fragmentShader}
+        vertexShader={vertexShader}
+        uniforms={uniform}
+      />
+    </mesh>
+  );
+};
+
+const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
+  const { width, height } = useWindowSize();
+  const { viewport } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+  const prevDragX = useRef(0);
+  const direction = useRef(1);
+  const dragState = useRef<"idle" | "dragging">("idle");
+  const itemRefs = useRef([]);
+
+  const itemWidth = 300;
+
   const uniforms = useMemo(() => {
     return {
       uTime: new THREE.Uniform(0),
@@ -151,7 +180,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         y: 0,
       }),
       uDirection: new THREE.Uniform(1),
-      uDisplacement: new THREE.Uniform(null),
+      uCurrentAnim: new THREE.Uniform(false),
+      uCurrentIndex: new THREE.Uniform(null),
+      uPrevIndex: new THREE.Uniform(null),
     };
   }, []);
   const mapRange = gsap.utils.mapRange(
@@ -217,26 +248,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   });
 
   useFrame((state, clock) => {
-    // using fbo rto get another render target
-    const { gl, camera, scene } = state;
-    gl.setRenderTarget(renderTarget);
-    // gl.setClearColor(0xff0000);
-    gl.render(fboScene.current, camera);
-    uniforms.uDisplacement.value = renderTarget.texture;
-    gl.setRenderTarget(null);
-
-    trackMousePos();
-    meshes.current.forEach((mesh) => {
-      if (mesh.visible) {
-        mesh.rotation.z += 0.02;
-        mesh.material.opacity *= 0.98;
-        mesh.scale.x = 0.99 * mesh.scale.x + 0.25;
-        mesh.scale.y = mesh.scale.x;
-        if (mesh.material.opacity < 0.002) mesh.visible = false;
-      }
-    });
-    // ==============================
-
     uniforms.uTime.value += 0.001 * direction.current;
     groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
@@ -277,12 +288,12 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       {dataToShow?.map((i, idx) => (
         <Item
           key={i.id}
+          ref={(el) => (itemRefs.current[idx] = el)}
+          index={idx}
           data={i}
           position-x={idx * (itemWidth + 10)}
           itemWidth={itemWidth}
           uniforms={uniforms}
-          test={test}
-          meshes={meshes.current}
         />
       ))}
     </group>

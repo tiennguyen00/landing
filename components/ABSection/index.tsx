@@ -10,47 +10,47 @@ gsap.registerPlugin(ScrollTrigger);
 const ABSection = () => {
   const headlineRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    gsap.fromTo(
-      headlineRef.current,
-      {
-        opacity: 0,
-        y: 100,
-        scale: 0.8,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        stagger: 0.2,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: headlineRef.current,
-          start: "top 75%",
-          end: "bottom 25%",
-          scrub: 1,
-        },
-      }
-    );
+  // useEffect(() => {
+  //   gsap.fromTo(
+  //     headlineRef.current,
+  //     {
+  //       opacity: 0,
+  //       y: 100,
+  //       scale: 0.8,
+  //     },
+  //     {
+  //       opacity: 1,
+  //       y: 0,
+  //       scale: 1,
+  //       stagger: 0.2,
+  //       ease: "power3.out",
+  //       scrollTrigger: {
+  //         trigger: headlineRef.current,
+  //         start: "top 75%",
+  //         end: "bottom 25%",
+  //         scrub: 1,
+  //       },
+  //     }
+  //   );
 
-    const boxes = gsap.utils.toArray(".animated-box"); // Select all elements with this class
+  //   const boxes = gsap.utils.toArray(".animated-box"); // Select all elements with this class
 
-    gsap.to(boxes, {
-      y: () => gsap.utils.random(-20, 20), // Moves down
-      duration: 1.2,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true,
-      stagger: 0.3,
-    });
+  //   gsap.to(boxes, {
+  //     y: () => gsap.utils.random(-20, 20), // Moves down
+  //     duration: 1.2,
+  //     ease: "sine.inOut",
+  //     repeat: -1,
+  //     yoyo: true,
+  //     stagger: 0.3,
+  //   });
 
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 3 });
-    tl.to(boxes, {
-      rotation: 360,
-      duration: 1.5,
-      ease: "power2.inOut",
-    });
-  }, []);
+  //   const tl = gsap.timeline({ repeat: -1, repeatDelay: 3 });
+  //   tl.to(boxes, {
+  //     rotation: 360,
+  //     duration: 1.5,
+  //     ease: "power2.inOut",
+  //   });
+  // }, []);
 
   const handleMouseMove = (e: any) => {
     const elemen = headlineRef.current;
