@@ -24,12 +24,14 @@ const Item = ({
   data,
   uniforms,
   itemWidth,
+  itemRefs,
   ...rest
 }: {
   index: number;
   data: Film;
   uniforms: Record<string, THREE.Uniform>;
   itemWidth: number;
+  itemRefs: any;
 } & THREE.MeshProps) => {
   // const scale = useAspect(texture.image.width, texture.image.height, 1);
   const { width, height } = useWindowSize();
@@ -47,10 +49,8 @@ const Item = ({
   const textureBrush = useTexture("/img/brush.png");
   const fboScene = useRef(new THREE.Scene());
 
-  const test = (x, y, index) => {
-    mouse.current.x = x * width;
-    mouse.current.y = y * height;
-  };
+  const isClicked = useRef(false);
+  const idTimeout = useRef(null);
 
   const uniform = useMemo(() => {
     return {
@@ -59,7 +59,6 @@ const Item = ({
       uTextureAspect: new THREE.Uniform(
         texture.image.width / texture.image.height
       ),
-      uIndex: new THREE.Uniform(index),
       uDisplacement: new THREE.Uniform(null),
     };
   }, [texture]);
@@ -86,7 +85,7 @@ const Item = ({
     mesh.visible = true;
     mesh.position.x = x;
     mesh.position.y = y;
-    mesh.scale.x = mesh.scale.y = 5;
+    mesh.scale.x = mesh.scale.y = 2;
     mesh.material.opacity = 0.5;
   };
   const trackMousePos = () => {
@@ -103,7 +102,7 @@ const Item = ({
     prevMouse.current.y = mouse.current.y;
   };
 
-  useFrame((state) => {
+  const update = (state) => {
     const { gl, camera, scene } = state;
     gl.setRenderTarget(renderTarget);
     // gl.setClearColor(0xff0000);
@@ -112,42 +111,37 @@ const Item = ({
     gl.setRenderTarget(null);
 
     trackMousePos();
-    // Count visible meshes first
-    let stillVisibleCount = meshes.current.reduce(
-      (count, mesh) => count + (mesh.visible ? 1 : 0),
-      0
-    );
     meshes.current.forEach((mesh, idx) => {
       if (mesh.visible) {
         mesh.rotation.z += 0.02;
         mesh.material.opacity *= 0.98;
-        mesh.scale.x = 0.99 * mesh.scale.x + 0.25;
+        mesh.scale.x = (isClicked.current ? 1.01 : 0.999) * mesh.scale.x + 0.25;
         mesh.scale.y = mesh.scale.x;
         if (mesh.material.opacity < 0.002) {
           mesh.visible = false;
-          stillVisibleCount--;
-          if (stillVisibleCount === 0) {
-            uniforms.uCurrentAnim.value = false;
-            console.log("Last mesh just became invisible");
-          }
         }
       }
     });
-  });
+  };
+
+  useEffect(() => {
+    itemRefs[index] = update;
+  }, []);
 
   return (
     <mesh
-      onPointerEnter={() => {
-        uniform.uCurrentIndex.value = index;
-      }}
-      onPointerLeave={() => {
-        uniform.uPrevIndex.value = index;
-      }}
       onPointerMove={(e) => {
-        uniform.uCurrentAnim.value = true;
         const x = e.uv.x - 0.5;
         const y = e.uv.y - 0.5;
-        test(x, y, index);
+        mouse.current.x = x * width;
+        mouse.current.y = y * height;
+      }}
+      onClick={() => {
+        if (idTimeout.current) clearTimeout(idTimeout.current);
+        isClicked.current = true;
+        idTimeout.current = setTimeout(() => {
+          isClicked.current = false;
+        }, 2000);
       }}
       {...rest}
     >
@@ -180,9 +174,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         y: 0,
       }),
       uDirection: new THREE.Uniform(1),
-      uCurrentAnim: new THREE.Uniform(false),
-      uCurrentIndex: new THREE.Uniform(null),
-      uPrevIndex: new THREE.Uniform(null),
     };
   }, []);
   const mapRange = gsap.utils.mapRange(
@@ -248,6 +239,11 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   });
 
   useFrame((state, clock) => {
+    // Update all items in a single frame
+    itemRefs.current.forEach((update) => {
+      update(state);
+    });
+
     uniforms.uTime.value += 0.001 * direction.current;
     groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
@@ -288,7 +284,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       {dataToShow?.map((i, idx) => (
         <Item
           key={i.id}
-          ref={(el) => (itemRefs.current[idx] = el)}
+          itemRefs={itemRefs.current}
           index={idx}
           data={i}
           position-x={idx * (itemWidth + 10)}
