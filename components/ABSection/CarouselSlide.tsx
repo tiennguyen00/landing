@@ -260,6 +260,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
+    const spacing = 10;
     const threshold = itemWidth; // Define a threshold for when to reposition
 
     // Reposition children when they move too far
@@ -270,14 +271,14 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         direction.current > 0 &&
         worldPosition.x > viewport.width + threshold
       ) {
-        // If moving right and item is too far right, move it to the leftmost position
-        child.position.x -= totalWidth;
+        // Account for spacing when repositioning
+        child.position.x -= totalWidth + spacing * (dataToShow?.length || 0);
       } else if (
         direction.current < 0 &&
         worldPosition.x < -viewport.width - threshold
       ) {
-        // If moving left and item is too far left, move it to the rightmost position
-        child.position.x += totalWidth;
+        // Account for spacing when repositioning
+        child.position.x += totalWidth + spacing * (dataToShow?.length || 0);
       }
     });
 
