@@ -1,14 +1,26 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import CarouselSlide from "./CarouselSlide";
 import Image from "next/image";
+import { useSlideStore } from "@/app/store";
+import LoadingScreen from "./LoadingScreen";
+import { useProgress } from "@react-three/drei";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const ABSection = () => {
   const headlineRef = useRef<HTMLDivElement>(null);
+
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { index } = useSlideStore();
+
+  useEffect(() => {
+    if (index === 1 && !isLoaded) {
+      setIsLoaded(true);
+    }
+  }, [index]);
 
   // useEffect(() => {
   //   gsap.fromTo(
@@ -87,6 +99,8 @@ const ABSection = () => {
     });
   };
 
+  const total = useProgress((state) => state.total);
+
   return (
     <div className="w-full min-h-screen overflow-hidden flex flex-col items-center relative !px-0">
       {/* <div
@@ -133,8 +147,8 @@ const ABSection = () => {
           </div>
         </h1>
       </div> */}
-
-      <CarouselSlide />
+      <LoadingScreen total={total} />
+      {isLoaded && <CarouselSlide />}
     </div>
   );
 };
