@@ -108,7 +108,7 @@ const Footer = () => {
   // };
 
   return (
-    <footer className="px-0 min-h-screen pt-24 pb-12 w-screen bg-[url('/img/footer-bg.webp')] bg-cover bg-center flex flex-col justify-center items-center">
+    <footer className="px-0 min-h-[100dvh] pt-24 pb-12 w-screen bg-[url('/img/footer-bg.webp')] bg-cover bg-center flex flex-col justify-center items-center">
       <div className="flex flex-col items-center sm:flex-row justify-around max-w-[1400px] mx-auto w-full">
         <div className="flex w-3/5 sm:w-auto">
           <img
@@ -149,7 +149,7 @@ const Footer = () => {
             // onMouseMove={handleMouseMove}
             // onMouseLeave={handleMouseLeave}
           >
-            <h1 className="text-black relative dark:text-white text-[16px] md:text-[18px] font-medium">
+            <h1 className="text-black relative text-[16px] md:text-[18px] font-medium">
               Explore worlds, beloved characters, and stories
               <div className="bg-transparent absolute hidden sm:block left-0 top-0 -translate-x-[calc(100%+15px)] dark:bg-white w-[50px] h-[50px] rounded-full">
                 <Image
@@ -168,7 +168,7 @@ const Footer = () => {
               </div>
             </h1>
 
-            <h1 className="md:text-[3rem] mb-2 relative text-[2.5rem] font-bold leading-none headline">
+            <h1 className="md:text-[3rem] mb-2 relative text-[2.5rem] font-bold leading-none headline text-black">
               Step Into the <br /> Ghibli Universe
             </h1>
           </div>

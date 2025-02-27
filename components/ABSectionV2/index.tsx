@@ -88,7 +88,7 @@ const ABSectionV2 = () => {
   };
 
   return (
-    <div className="w-full  min-h-screen overflow-hidden flex flex-col items-center relative padding">
+    <div className="w-full  min-h-[100dvh] overflow-hidden flex flex-col items-center relative padding">
       {/* <div
         className="flex flex-col items-center text-center headline-container mx-auto dark:text-white "
         ref={headlineRef}

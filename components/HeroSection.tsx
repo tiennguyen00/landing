@@ -100,7 +100,7 @@ const HeroSection = ({
 
   return (
     <div
-      className={`w-screen min-h-screen relative flex items-end md:items-center overflow-hidden`}
+      className={`w-screen min-h-[100dvh] relative flex items-end md:items-center overflow-hidden`}
       id="clip"
       ref={imgRef}
       onMouseMove={handleMouseMove}

@@ -37,6 +37,7 @@ const MainPage = () => {
     ease: "slow.inOut",
     duration: duration,
   };
+  const slideTo = useRef<((index: number) => void) | null>(null);
 
   const [isSliding, setIsSliding] = useState<number | undefined>(undefined);
   const stateFirstSectionRef = useRef<StateSection>({
@@ -122,17 +123,17 @@ const MainPage = () => {
       const t = e.changedTouches[0];
       touch.current.dx = t.pageX - touch.current.startX;
       touch.current.dy = t.pageY - touch.current.startY;
-      if (touch.current.dy <= 150 && touch.current.dy >= -150) return;
-      if (touch.current.dy > 150) direction.current = "up";
-      if (touch.current.dy < -150) direction.current = "down";
+      if (touch.current.dy <= 50 && touch.current.dy >= -50) return;
+      if (touch.current.dy > 50) direction.current = "up";
+      if (touch.current.dy < -50) direction.current = "down";
       setDirection(direction.current);
       handleDirection();
     }
     // Handle the event
     window.addEventListener("wheel", handleWheel);
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchmove", handleTouchMove);
-    window.addEventListener("touchend", handleTouchEnd);
+    // window.addEventListener("touchstart", handleTouchStart);
+    // window.addEventListener("touchmove", handleTouchMove);
+    // window.addEventListener("touchend", handleTouchEnd);
 
     function slideIn() {
       setIsSliding(next.current);
@@ -190,6 +191,22 @@ const MainPage = () => {
       tl.play(0);
     }
 
+    // Slide to section
+    slideTo.current = (index: number) => {
+      if (!listening.current || index === curSlide.current) return;
+      if (index < 0 || index >= sections.length) return;
+
+      direction.current = index > (curSlide.current ?? 0) ? "down" : "up";
+      setDirection(direction.current);
+
+      next.current = index;
+      if (direction.current === "down") {
+        slideIn();
+      } else {
+        slideOut();
+      }
+    };
+
     // Slides a section out on scroll up
     function slideOut() {
       setIsSliding(next.current);
@@ -230,16 +247,21 @@ const MainPage = () => {
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
+      // window.removeEventListener("touchstart", handleTouchStart);
+      // window.removeEventListener("touchmove", handleTouchMove);
+      // window.removeEventListener("touchend", handleTouchEnd);
     };
   });
 
   return (
     <>
       <Navbar />
-      <SidePag isSliding={isSliding} quantity={3} duration={duration} />
+      <SidePag
+        isSliding={isSliding}
+        quantity={3}
+        duration={duration}
+        slideTo={slideTo.current}
+      />
 
       <section>
         <div className="outer bg-white dark:bg-black">
