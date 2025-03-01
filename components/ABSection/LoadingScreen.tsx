@@ -48,7 +48,7 @@ const LoadingScreen = ({ total }: LoadingScreenProps) => {
   return (
     <div
       className={cn(
-        "fixed bg-white dark:bg-black z-[999] w-full h-full",
+        "fixed bg-white dark:bg-black z-999 w-full h-full",
         "flex justify-center items-center px-10",
         isComplete && "hidden"
       )}

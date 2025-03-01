@@ -197,7 +197,7 @@ const Footer = () => {
             </div>
             <div className="flex relative w-full border-[3px] border-[#845b4f] pr-10 py-2 pl-2 rounded-md bg-[#cf9e2a] mb-3">
               <input
-                className="bg-transparent w-full outline-none placeholder:text-[#58585C]"
+                className="bg-transparent w-full outline-hidden placeholder:text-[#58585C]"
                 placeholder="Your email address"
               />
               <button className="absolute right-0 top-0 w-10 h-full ">

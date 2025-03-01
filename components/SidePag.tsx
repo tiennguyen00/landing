@@ -16,7 +16,7 @@ const SidePag = ({ isSliding, quantity, duration, slideTo }: SidePagProps) => {
     }
   }, [isSliding]);
   return (
-    <div className={"fixed top-1/2 z-[9999] -translate-y-1/2 left-4"}>
+    <div className={"fixed top-1/2 z-9999 -translate-y-1/2 left-4"}>
       <div
         className="flex relative flex-col items-center w-[32px]"
         style={{
@@ -48,12 +48,12 @@ const SidePag = ({ isSliding, quantity, duration, slideTo }: SidePagProps) => {
           {isSliding !== undefined ? (
             <img
               src="/img/chibli-totoro.gif"
-              className="h-[48px] aspect-[11/8] z-20 w-auto"
+              className="h-[48px] aspect-11/8 z-20 w-auto"
             />
           ) : (
             <img
               src="/img/chibli-totoro.png"
-              className="w-[32px] aspect-[23/32] z-20 h-auto"
+              className="w-[32px] aspect-23/32 z-20 h-auto"
             />
           )}
         </div>

@@ -129,7 +129,7 @@ const HeroSection = ({
 
         <div className="absolute top-40 md:left-12 lg:left-20">
           <h1
-            className="text-black md:text-[3.5rem] lg:text-[5rem] font-bold leading-[1] bg-white p-2"
+            className="text-black md:text-[3.5rem] lg:text-[5rem] font-bold leading-none bg-white p-2"
             style={{
               textShadow:
                 "0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px black, 0 0 45px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.5)",
@@ -152,7 +152,7 @@ const HeroSection = ({
         />
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full">
-          <h1 className="text-white mb-6 text-[2.5rem] font-bold leading-[1] text-center">
+          <h1 className="text-white mb-6 text-[2.5rem] font-bold leading-none text-center">
             Welcome to <br /> magical world
           </h1>
           <div className="flex justify-center items-center scroll-marker">
@@ -227,7 +227,7 @@ const HeroSection = ({
           <span className="font-medium md:text-[18px] lg:text-[20px] text-[18px] mb-3 md:block hidden">
             Explore the Magic of Ghibli.
           </span>
-          <h1 className="lg:text-[4rem] md:text-[3rem] text-[2.5rem] font-bold leading-[1]">
+          <h1 className="lg:text-[4rem] md:text-[3rem] text-[2.5rem] font-bold leading-none">
             Dreams and <br /> Adventure Await
           </h1>
           <p className="md:max-w-md mt-5 leading-relaxed md:text-[18px] md:block hidden text-gray-500">

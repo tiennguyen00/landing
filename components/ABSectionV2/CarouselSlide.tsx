@@ -173,7 +173,7 @@ const CarouselSlide = () => {
             }}
           >
             <Image
-              className="absolute h-full aspect-[16/9] horizontal-image"
+              className="absolute h-full aspect-16/9 horizontal-image"
               style={{
                 minWidth: `${fixedWidth}px`,
               }}
