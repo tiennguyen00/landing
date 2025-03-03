@@ -12,13 +12,13 @@ import {
   useTexture,
   OrthographicCamera,
   useFBO,
+  StatsGl,
 } from "@react-three/drei";
 import { useMemo, useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
 import { useTheme } from "@/app/providers";
-import Stats from "stats.js";
 
 const Item = ({
   index,
@@ -164,7 +164,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const prevDragX = useRef(0);
   const direction = useRef(1);
   const dragState = useRef<"idle" | "dragging">("idle");
-  const statsRef = useRef(new Stats());
   const itemRefs = useRef([]);
 
   const itemWidth = 300;
@@ -191,12 +190,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const scrollLeft = useRef(0);
 
   useEffect(() => {
-    //Tracking performance stats
-    const stats = statsRef.current;
-    stats.showPanel(0); // 0: FPS, 1: MS, 2: MB
-    document.body.appendChild(stats.dom);
-    // ================================
-
     const container = document.body;
     if (!container) return;
 
@@ -238,7 +231,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
-      document.body.removeChild(stats.dom);
     };
   }, []);
 
@@ -249,7 +241,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   });
 
   useFrame((state, clock) => {
-    statsRef.current.begin();
     // Update all items in a single frame
     itemRefs.current.forEach((update) => {
       update(state);
@@ -289,8 +280,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
         uniforms.uDelta.value.x += 5;
       }
     }
-
-    statsRef.current.end();
   });
 
   return (
@@ -329,6 +318,7 @@ const CarouselSlide = () => {
   return (
     <Canvas style={{ width: "100%", height: "100vh" }}>
       <color args={[theme === "dark" ? "#000" : "#fff"]} attach="background" />
+      <StatsGl className="z-[20] fixed" trackGPU />
       <OrthographicCamera
         makeDefault
         left={width / -2}
