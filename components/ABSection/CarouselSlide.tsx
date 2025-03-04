@@ -11,14 +11,14 @@ import {
   useAspect,
   useTexture,
   OrthographicCamera,
-  useFBO,
   StatsGl,
 } from "@react-three/drei";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
 import { useTheme } from "@/app/providers";
+import { useFBOManager } from "./useFBOManager";
 
 const Item = ({
   index,
@@ -26,6 +26,9 @@ const Item = ({
   uniforms,
   itemWidth,
   itemRefs,
+  fboManager,
+  isActive,
+  setActiveItem,
   ...rest
 }: {
   index: number;
@@ -33,15 +36,16 @@ const Item = ({
   uniforms: Record<string, THREE.Uniform>;
   itemWidth: number;
   itemRefs: any;
+  fboManager: ReturnType<typeof useFBOManager>;
+  isActive: boolean;
+  setActiveItem: (index: number, active: boolean) => void;
 } & THREE.MeshProps) => {
   // const scale = useAspect(texture.image.width, texture.image.height, 1);
   const { width, height } = useWindowSize();
   const texture = useTexture(data.movie_banner);
-  const renderTarget = useFBO(width, height, {
-    minFilter: THREE.LinearFilter,
-    magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
-  });
+
+  const renderTarget = useRef<THREE.WebGLRenderTarget | null>(null);
+
   const max = 50;
   const mouse = useRef(new THREE.Vector2());
   const prevMouse = useRef(new THREE.Vector2());
@@ -49,6 +53,9 @@ const Item = ({
   const meshes = useRef<THREE.Mesh[]>([]);
   const textureBrush = useTexture("/img/brush.png");
   const fboScene = useRef(new THREE.Scene());
+
+  // Using for tracking when the last mesh is invisible
+  const visibleMeshCount = useRef(0);
 
   const isClicked = useRef(false);
   const idTimeout = useRef(null);
@@ -83,6 +90,7 @@ const Item = ({
 
   const setNewWave = (x, y, index) => {
     const mesh = meshes.current[index];
+    if (!mesh.visible) visibleMeshCount.current++;
     mesh.visible = true;
     mesh.position.x = x;
     mesh.position.y = y;
@@ -104,33 +112,66 @@ const Item = ({
   };
 
   const update = (state) => {
-    const { gl, camera, scene } = state;
-    gl.setRenderTarget(renderTarget);
-    // gl.setClearColor(0xff0000);
-    gl.render(fboScene.current, camera);
-    uniform.uDisplacement.value = renderTarget.texture;
-    gl.setRenderTarget(null);
-
-    trackMousePos();
-    meshes.current.forEach((mesh, idx) => {
-      if (mesh.visible) {
-        mesh.rotation.z += 0.02;
-        mesh.material.opacity *= 0.98;
-        mesh.scale.x = (isClicked.current ? 1.05 : 0.999) * mesh.scale.x + 0.25;
-        mesh.scale.y = mesh.scale.x;
-        if (mesh.material.opacity < 0.002) {
-          mesh.visible = false;
-        }
+    // Only perform FBO rendering if this item is active and is interacting
+    if (isActive) {
+      // Request an FBO if we don't have one
+      if (!renderTarget.current) {
+        renderTarget.current = fboManager.requestFBO(index);
       }
-    });
+
+      // If we have an FBO, render to it
+      if (renderTarget.current) {
+        const { gl, camera } = state;
+        gl.setRenderTarget(renderTarget.current);
+        gl.render(fboScene.current, camera);
+        uniform.uDisplacement.value = renderTarget.current.texture;
+        gl.setRenderTarget(null);
+
+        trackMousePos();
+        meshes.current.forEach((mesh, idx) => {
+          if (mesh.visible) {
+            mesh.rotation.z += 0.02;
+            mesh.material.opacity *= 0.98;
+            mesh.scale.x =
+              (isClicked.current ? 1.05 : 0.999) * mesh.scale.x + 0.25;
+            mesh.scale.y = mesh.scale.x;
+            if (mesh.material.opacity < 0.002) {
+              mesh.visible = false;
+              visibleMeshCount.current--;
+
+              if (visibleMeshCount.current === 0) {
+                setActiveItem(index, false);
+              }
+            }
+          }
+        });
+      }
+    } else if (renderTarget.current) {
+      // If we're not active anymore but have an FBO, release it
+      fboManager.releaseFBO(index);
+      renderTarget.current = null;
+      uniform.uDisplacement.value = null;
+    }
   };
 
   useEffect(() => {
+    // Add this update function to the useFrame (in parent)
     itemRefs[index] = update;
-  }, []);
+
+    // Clean up on unmount
+    return () => {
+      if (renderTarget.current) {
+        fboManager.releaseFBO(index);
+        renderTarget.current = null;
+      }
+    };
+  }, [isActive]);
 
   return (
     <mesh
+      onPointerEnter={() => {
+        setActiveItem(index, true);
+      }}
       onPointerMove={(e) => {
         if (isClicked.current) return;
         const x = e.uv.x - 0.5;
@@ -139,6 +180,8 @@ const Item = ({
         mouse.current.y = y * height;
       }}
       onClick={() => {
+        setActiveItem(index, true);
+
         if (idTimeout.current) clearTimeout(idTimeout.current);
         isClicked.current = true;
         idTimeout.current = setTimeout(() => {
@@ -166,6 +209,19 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const dragState = useRef<"idle" | "dragging">("idle");
   const itemRefs = useRef([]);
 
+  // Track which items are active (need FBOs)
+  const [activeItems, setActiveItems] = useState<{ [key: number]: boolean }>(
+    {}
+  );
+  // Create FBO manager
+  const fboManager = useFBOManager(width, height);
+  const setActiveItem = (index: number, active: boolean) => {
+    setActiveItems((prev) => ({
+      ...prev,
+      [index]: active,
+    }));
+  };
+
   const itemWidth = 300;
 
   const uniforms = useMemo(() => {
@@ -190,9 +246,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const scrollLeft = useRef(0);
 
   useEffect(() => {
-    const container = document.body;
-    if (!container) return;
-
     const handleMouseDown = (e: MouseEvent) => {
       isDragging.current = true;
       prevDragX.current = mapRange(e.clientX);
@@ -234,20 +287,15 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     };
   }, []);
 
-  const renderTarget = useFBO(width, height, {
-    minFilter: THREE.LinearFilter,
-    magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
-  });
-
   useFrame((state, clock) => {
+    // console.log(Object.keys(fboManager.activeItems));
     // Update all items in a single frame
     itemRefs.current.forEach((update) => {
       update(state);
     });
 
     uniforms.uTime.value += 0.001 * direction.current;
-    groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
+    // groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
@@ -293,6 +341,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
           position-x={idx * (itemWidth + 10)}
           itemWidth={itemWidth}
           uniforms={uniforms}
+          fboManager={fboManager}
+          isActive={!!activeItems[idx]}
+          setActiveItem={setActiveItem}
         />
       ))}
     </group>
