@@ -288,7 +288,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   }, []);
 
   useFrame((state, clock) => {
-    // console.log(Object.keys(fboManager.activeItems));
     // Update all items in a single frame
     itemRefs.current.forEach((update) => {
       update(state);

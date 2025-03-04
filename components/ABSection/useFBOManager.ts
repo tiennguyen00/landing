@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
 
-// FBO Manager to handle dynamic allocation and release of FBOs
 const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
+  const { gl } = useThree();
   const fboPool = useRef<THREE.WebGLRenderTarget[]>([]);
   const activeItems = useRef<Record<string, THREE.WebGLRenderTarget | null>>(
     {}
   );
-  const renderer = useRef<THREE.WebGLRenderer | null>(null);
 
   // Initialize FBO pool
   useEffect(() => {
@@ -29,26 +31,8 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     };
   }, [width, height, maxFBOs]);
 
-  // Clear an FBO's contents
-  const clearFBO = (fbo: THREE.WebGLRenderTarget, gl: THREE.WebGLRenderer) => {
-    // Store current render target
-    const currentRenderTarget = gl.getRenderTarget();
-    // Set to our FBO and clear it
-    gl.setRenderTarget(fbo);
-    gl.clear();
-    // Restore previous render target
-    gl.setRenderTarget(currentRenderTarget);
-
-    return fbo;
-  };
-
   // Request an FBO for an item
-  const requestFBO = (itemIndex: number, gl?: THREE.WebGLRenderer) => {
-    // Store renderer reference if provided
-    if (gl && !renderer.current) {
-      renderer.current = gl;
-    }
-
+  const requestFBO = (itemIndex: number) => {
     // Check if this item already has an FBO assigned
     if (activeItems.current[itemIndex]) {
       return activeItems.current[itemIndex];
@@ -58,11 +42,13 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     if (fboPool.current.length > 0) {
       const fbo = fboPool.current.pop();
       activeItems.current[itemIndex] = fbo ?? null;
+
       return fbo;
     }
 
     // No FBO available - ake the FBO from the least recently used item:
     const oldestItemIndex = Object.keys(activeItems.current)[0];
+    console.log("oldestItemIndex", oldestItemIndex);
     if (oldestItemIndex && oldestItemIndex !== itemIndex.toString()) {
       const fbo = activeItems.current[Number(oldestItemIndex)];
       delete activeItems.current[Number(oldestItemIndex)];
