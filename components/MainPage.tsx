@@ -263,7 +263,7 @@ const MainPage = () => {
         slideTo={slideTo.current}
       />
 
-      {/* <section>
+      <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
@@ -271,7 +271,7 @@ const MainPage = () => {
             </div>
           </div>
         </div>
-      </section> */}
+      </section>
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">

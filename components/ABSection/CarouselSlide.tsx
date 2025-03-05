@@ -134,14 +134,15 @@ const Item = ({
   const update = (state) => {
     if (isActive) {
       if (!renderTarget.current) {
-        console.log("requesting: ", index);
         renderTarget.current = fboManager.requestFBO(index);
       }
       if (!fboManager.hasFBO(index)) {
-        // console.log("remove: ", index);
         renderTarget.current = null;
         uniform.uDisplacement.value = null;
         setActiveItem(index, false);
+        meshes.current.forEach((mesh) => {
+          mesh.visible = false;
+        });
       }
 
       // If we have an FBO, render to it
@@ -283,10 +284,6 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log(activeItems);
-  // }, [activeItems]);
-
   useFrame((state, clock) => {
     // Update all items in a single frame
     itemRefs.current.forEach((update) => {
@@ -294,7 +291,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     uniforms.uTime.value += 0.001 * direction.current;
-    // groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
+    groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);

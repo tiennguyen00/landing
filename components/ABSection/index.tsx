@@ -23,9 +23,8 @@ const ABSection = () => {
 
   return (
     <div className="w-full min-h-[100dvh] overflow-hidden flex flex-col items-center relative px-0!">
-      {/* <LoadingScreen total={total} />
-      {isLoaded && <CarouselSlide />} */}
-      <CarouselSlide />
+      <LoadingScreen total={total} />
+      {isLoaded && <CarouselSlide />}
     </div>
   );
 };
