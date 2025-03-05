@@ -7,9 +7,7 @@ import { useThree } from "@react-three/fiber";
 const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
   const { gl } = useThree();
   const fboPool = useRef<THREE.WebGLRenderTarget[]>([]);
-  const activeItems = useRef<Record<string, THREE.WebGLRenderTarget | null>>(
-    {}
-  );
+  const activeItems = useRef(new Map<number, THREE.WebGLRenderTarget | null>());
 
   // Initialize FBO pool
   useEffect(() => {
@@ -27,32 +25,36 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
       // Clean up FBOs on unmount
       fboPool.current.forEach((fbo) => fbo.dispose());
       fboPool.current = [];
-      activeItems.current = {};
+      activeItems.current.clear();
     };
-  }, [width, height, maxFBOs]);
+  }, [width, height]);
+
+  // Helper function to clear an FBO
 
   // Request an FBO for an item
   const requestFBO = (itemIndex: number) => {
     // Check if this item already has an FBO assigned
-    if (activeItems.current[itemIndex]) {
-      return activeItems.current[itemIndex];
+    if (activeItems.current.has(itemIndex)) {
+      return activeItems.current.get(itemIndex);
     }
 
     // Check if there's an available FBO in the pool
     if (fboPool.current.length > 0) {
       const fbo = fboPool.current.pop();
-      activeItems.current[itemIndex] = fbo ?? null;
-
+      // clearFBO(fbo);
+      activeItems.current.set(itemIndex, fbo);
       return fbo;
     }
 
-    // No FBO available - ake the FBO from the least recently used item:
-    const oldestItemIndex = Object.keys(activeItems.current)[0];
-    console.log("oldestItemIndex", oldestItemIndex);
-    if (oldestItemIndex && oldestItemIndex !== itemIndex.toString()) {
-      const fbo = activeItems.current[Number(oldestItemIndex)];
-      delete activeItems.current[Number(oldestItemIndex)];
-      activeItems.current[itemIndex] = fbo;
+    // No FBO available - take the FBO from the least recently used item
+    const oldestItemIndex = [...activeItems.current.keys()][0];
+    if (oldestItemIndex && oldestItemIndex !== itemIndex) {
+      const fbo = activeItems.current.get(oldestItemIndex);
+
+      // Update references
+      activeItems.current.delete(oldestItemIndex);
+      activeItems.current.set(itemIndex, fbo);
+
       return fbo;
     }
 
@@ -61,18 +63,26 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
 
   // Release an FBO when no longer needed
   const releaseFBO = (itemIndex: number) => {
-    const fbo = activeItems.current[itemIndex];
+    const fbo = activeItems.current.get(itemIndex);
     if (fbo) {
-      delete activeItems.current[itemIndex];
+      activeItems.current.delete(itemIndex);
+      // clearFBO(fbo);
       fboPool.current.push(fbo);
     }
   };
 
   // Check if an item currently has an FBO
   const hasFBO = (itemIndex: number) => {
-    return !!activeItems.current[itemIndex];
+    return activeItems.current.has(itemIndex);
   };
 
-  return { requestFBO, releaseFBO, hasFBO, activeItems: activeItems.current };
+  // Get the current version counter - items can use this to detect changes
+
+  return {
+    requestFBO,
+    releaseFBO,
+    hasFBO,
+  };
 };
+
 export { useFBOManager };
