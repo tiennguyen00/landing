@@ -29,8 +29,6 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     };
   }, [width, height]);
 
-  // Helper function to clear an FBO
-
   // Request an FBO for an item
   const requestFBO = (itemIndex: number) => {
     // Check if this item already has an FBO assigned
@@ -41,14 +39,14 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     // Check if there's an available FBO in the pool
     if (fboPool.current.length > 0) {
       const fbo = fboPool.current.pop();
-      // clearFBO(fbo);
       activeItems.current.set(itemIndex, fbo);
       return fbo;
     }
 
     // No FBO available - take the FBO from the least recently used item
     const oldestItemIndex = [...activeItems.current.keys()][0];
-    if (oldestItemIndex && oldestItemIndex !== itemIndex) {
+    if (oldestItemIndex !== undefined && oldestItemIndex !== itemIndex) {
+      console.log("reassigning FBO", oldestItemIndex, itemIndex);
       const fbo = activeItems.current.get(oldestItemIndex);
 
       // Update references
@@ -66,7 +64,6 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     const fbo = activeItems.current.get(itemIndex);
     if (fbo) {
       activeItems.current.delete(itemIndex);
-      // clearFBO(fbo);
       fboPool.current.push(fbo);
     }
   };
@@ -76,12 +73,11 @@ const useFBOManager = (width: number, height: number, maxFBOs = 2) => {
     return activeItems.current.has(itemIndex);
   };
 
-  // Get the current version counter - items can use this to detect changes
-
   return {
     requestFBO,
     releaseFBO,
     hasFBO,
+    activeItems,
   };
 };
 

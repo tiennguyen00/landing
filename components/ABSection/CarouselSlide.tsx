@@ -60,6 +60,8 @@ const Item = ({
   const isClicked = useRef(false);
   const idTimeout = useRef(null);
 
+  const isHovering = useRef(false);
+
   const uniform = useMemo(() => {
     return {
       ...uniforms,
@@ -109,79 +111,73 @@ const Item = ({
     }
     prevMouse.current.x = mouse.current.x;
     prevMouse.current.y = mouse.current.y;
+
+    // Handle mesh fade out
+    meshes.current.forEach((mesh, idx) => {
+      if (mesh.visible) {
+        mesh.rotation.z += 0.02;
+        mesh.material.opacity *= 0.98;
+        mesh.scale.x = (isClicked.current ? 1.05 : 0.999) * mesh.scale.x + 0.25;
+        mesh.scale.y = mesh.scale.x;
+        if (mesh.material.opacity < 0.002) {
+          mesh.visible = false;
+          visibleMeshCount.current--;
+
+          if (visibleMeshCount.current === 0) {
+            setActiveItem(index, false);
+          }
+        }
+      }
+    });
   };
 
   const update = (state) => {
-    // Only perform FBO rendering if this item is active and is interacting
     if (isActive) {
-      // Request an FBO if we don't have one
       if (!renderTarget.current) {
+        console.log("requesting: ", index);
         renderTarget.current = fboManager.requestFBO(index);
+      }
+      if (!fboManager.hasFBO(index)) {
+        // console.log("remove: ", index);
+        renderTarget.current = null;
+        uniform.uDisplacement.value = null;
+        setActiveItem(index, false);
       }
 
       // If we have an FBO, render to it
       if (renderTarget.current) {
         const { gl, camera } = state;
         gl.setRenderTarget(renderTarget.current);
+        gl.clear();
         gl.render(fboScene.current, camera);
         uniform.uDisplacement.value = renderTarget.current.texture;
         gl.setRenderTarget(null);
 
         trackMousePos();
-        meshes.current.forEach((mesh, idx) => {
-          if (mesh.visible) {
-            mesh.rotation.z += 0.02;
-            mesh.material.opacity *= 0.98;
-            mesh.scale.x =
-              (isClicked.current ? 1.05 : 0.999) * mesh.scale.x + 0.25;
-            mesh.scale.y = mesh.scale.x;
-            if (mesh.material.opacity < 0.002) {
-              mesh.visible = false;
-              visibleMeshCount.current--;
-
-              if (visibleMeshCount.current === 0) {
-                setActiveItem(index, false);
-              }
-            }
-          }
-        });
       }
-    } else if (renderTarget.current) {
-      // If we're not active anymore but have an FBO, release it
-      fboManager.releaseFBO(index);
-      renderTarget.current = null;
-      uniform.uDisplacement.value = null;
     }
   };
 
   useEffect(() => {
-    // Add this update function to the useFrame (in parent)
     itemRefs[index] = update;
-
-    // Clean up on unmount
-    return () => {
-      if (renderTarget.current) {
-        fboManager.releaseFBO(index);
-        renderTarget.current = null;
-      }
-    };
   }, [isActive]);
 
   return (
     <mesh
       onPointerEnter={() => {
+        isHovering.current = true;
         setActiveItem(index, true);
       }}
       onPointerMove={(e) => {
-        if (isClicked.current) return;
         const x = e.uv.x - 0.5;
         const y = e.uv.y - 0.5;
         mouse.current.x = x * width;
         mouse.current.y = y * height;
       }}
+      onPointerLeave={() => {
+        isHovering.current = false;
+      }}
       onClick={() => {
-        setActiveItem(index, true);
-
         if (idTimeout.current) clearTimeout(idTimeout.current);
         isClicked.current = true;
         idTimeout.current = setTimeout(() => {
@@ -286,6 +282,10 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
+
+  // useEffect(() => {
+  //   console.log(activeItems);
+  // }, [activeItems]);
 
   useFrame((state, clock) => {
     // Update all items in a single frame
