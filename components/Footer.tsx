@@ -4,6 +4,9 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
 import { useGSAP } from "@gsap/react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import EarlyAccessModal from "./shared/EarlyAccessModal";
 
 const information = [
   "About us",
@@ -196,13 +199,16 @@ const Footer = () => {
               </p>
             </div>
             <div className="flex relative w-full border-[3px] border-[#845b4f] pr-10 py-2 pl-2 rounded-md bg-[#cf9e2a] mb-3">
-              <input
-                className="bg-transparent w-full outline-hidden placeholder:text-[#58585C]"
+              <Input
+                className="bg-transparent font-bold !focus-visible:outline-none focus-visible:ring-0 outline-none border-none w-full outline-hidden placeholder:text-[#58585C]"
                 placeholder="Your email address"
               />
-              <button className="absolute right-0 top-0 w-10 h-full ">
-                <Send className="text-white m-auto transform transition-transform duration-300" />
-              </button>
+
+              <EarlyAccessModal>
+                <Button className="absolute right-1 top-0 !bg-transparent h-full !px-0 [&_svg]:size-8">
+                  <Send />
+                </Button>
+              </EarlyAccessModal>
             </div>
             <p className="text-sm">
               You may unsubscribe at any moment. For that purpose, please find
