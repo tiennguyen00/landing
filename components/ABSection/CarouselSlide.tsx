@@ -211,7 +211,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     {}
   );
   // Create FBO manager
-  const fboManager = useFBOManager(width, height);
+  const fboManager = useFBOManager(width, height, width <= 560 ? 2 : undefined);
   const setActiveItem = (index: number, active: boolean) => {
     setActiveItems((prev) => ({
       ...prev,

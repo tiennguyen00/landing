@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 
-const useFBOManager = (width: number, height: number, maxFBOs = 3) => {
+const useFBOManager = (width: number, height: number, maxFBOs = 5) => {
   const { gl } = useThree();
   const fboPool = useRef<THREE.WebGLRenderTarget[]>([]);
   const activeItems = useRef(new Map<number, THREE.WebGLRenderTarget | null>());
