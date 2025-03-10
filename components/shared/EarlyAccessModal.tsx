@@ -6,7 +6,7 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 const EarlyAccessModal = ({ children }: { children: React.ReactNode }) => {
   return (
     <Dialog>
-      <DialogTrigger>{children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px] p-1 flex justify-center items-center min-h-[300px]">
         <DialogTitle></DialogTitle>
         <div className="relative flex flex-col gap-2 w-full justify-center items-center">
