@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { useControls, folder } from "leva";

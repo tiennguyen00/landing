@@ -9,7 +9,6 @@ import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
 import SceneContainer from "./Scene";
-import ABSectionV2 from "./ABSectionV2";
 import ABSection from "./ABSection";
 
 export interface StateSection {
