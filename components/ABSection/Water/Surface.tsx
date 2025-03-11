@@ -1,14 +1,14 @@
 import { useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { useControls, folder } from "leva";
-import { waterVertexShader, waterFragmentShader } from "./shader";
+import { waterVertexShader, waterFragmentShader } from "../shader";
 import { useFrame } from "@react-three/fiber";
 
 interface SurfaceWaterProps {
   itemWidth: number;
 }
 
-const SurfaceWater = ({ itemWidth }: SurfaceWaterProps) => {
+const Surface = ({ itemWidth }: SurfaceWaterProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const {
     elevationB,
@@ -127,4 +127,4 @@ const SurfaceWater = ({ itemWidth }: SurfaceWaterProps) => {
   );
 };
 
-export default SurfaceWater;
+export default Surface;

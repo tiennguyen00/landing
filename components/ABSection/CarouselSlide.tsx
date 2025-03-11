@@ -20,10 +20,9 @@ import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
 import { useTheme } from "@/app/providers";
 import { useFBOManager } from "./useFBOManager";
-import SurfaceWater from "./SurfaceWater";
 import CarouselItem from "./Carouseltem";
-
-const frustemFacter = 0.5;
+import Enviroment from "./Enviroment";
+const frustemFactor = 0.01;
 
 const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
   const { width, height } = useWindowSize();
@@ -39,7 +38,11 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     {}
   );
   // Create FBO manager
-  const fboManager = useFBOManager(width, height, width <= 560 ? 2 : undefined);
+  const fboManager = useFBOManager(
+    width / 4,
+    height / 4,
+    width <= 560 ? 2 : undefined
+  );
   const setActiveItem = (index: number, active: boolean) => {
     setActiveItems((prev) => ({
       ...prev,
@@ -47,7 +50,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     }));
   };
 
-  const itemWidth = 300;
+  const itemWidth = 300 * frustemFactor;
 
   const uniforms = useMemo(() => {
     return {
@@ -87,13 +90,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       gsap.to(groupRef.current!.position, {
         x:
           groupRef.current!.position.x +
-          deltaX * uniforms.uDirection.value * 15,
+          deltaX * uniforms.uDirection.value * 15 * frustemFactor,
         duration: 0.5,
         ease: "power2.out",
       });
 
       dragState.current = "dragging";
-      uniforms.uDelta.value.x = Math.min(deltaX * 50, 120);
+      uniforms.uDelta.value.x = Math.min(deltaX, 0.85);
     };
 
     const handleMouseUp = () => {
@@ -119,11 +122,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     uniforms.uTime.value += 0.001 * direction.current;
-    groupRef.current?.position.add(new THREE.Vector3(direction.current, 0, 0));
+    groupRef.current?.position.add(
+      new THREE.Vector3(direction.current * frustemFactor, 0, 0)
+    );
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
-    const spacing = 10;
+    const spacing = 10 * frustemFactor;
     const threshold = itemWidth; // Define a threshold for when to reposition
 
     // Reposition children when they move too far
@@ -132,13 +137,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
 
       if (
         direction.current > 0 &&
-        worldPosition.x > viewport.width + threshold
+        worldPosition.x > viewport.width * frustemFactor + threshold
       ) {
         // Account for spacing when repositioning
         child.position.x -= totalWidth + spacing * (dataToShow?.length || 0);
       } else if (
         direction.current < 0 &&
-        worldPosition.x < -viewport.width - threshold
+        worldPosition.x < -viewport.width * frustemFactor - threshold
       ) {
         // Account for spacing when repositioning
         child.position.x += totalWidth + spacing * (dataToShow?.length || 0);
@@ -146,40 +151,40 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     if (dragState.current === "idle" && uniforms.uDelta.value.x !== 0) {
-      if (uniforms.uDelta.value.x > 5) {
-        uniforms.uDelta.value.x -= 5;
-      } else if (uniforms.uDelta.value.x < -5) {
-        uniforms.uDelta.value.x += 5;
+      if (uniforms.uDelta.value.x > 5 * frustemFactor) {
+        uniforms.uDelta.value.x -= 10 * frustemFactor;
+      } else if (uniforms.uDelta.value.x < -5 * frustemFactor) {
+        uniforms.uDelta.value.x += 10 * frustemFactor;
       }
     }
   });
 
+  const textureBrush = useTexture("/img/brush.png");
+
   return (
-    <>
-      <group position-x={-10} ref={groupRef}>
-        {dataToShow?.map((i, idx) => (
-          <CarouselItem
-            key={i.id}
-            itemRefs={itemRefs.current}
-            index={idx}
-            data={i}
-            position-x={idx * (itemWidth + 10)}
-            itemWidth={itemWidth}
-            uniforms={uniforms}
-            fboManager={fboManager}
-            isActive={!!activeItems[idx]}
-            setActiveItem={setActiveItem}
-          />
-        ))}
-      </group>
-      {/* <SurfaceWater itemWidth={itemWidth} /> */}
-    </>
+    <group position-x={-6.5} ref={groupRef}>
+      {dataToShow?.map((i, idx) => (
+        <CarouselItem
+          key={i.id}
+          itemRefs={itemRefs.current}
+          index={idx}
+          data={i}
+          position-x={idx * (itemWidth + 0.1)}
+          itemWidth={itemWidth}
+          uniforms={uniforms}
+          fboManager={fboManager}
+          isActive={!!activeItems[idx]}
+          setActiveItem={setActiveItem}
+          textureBrush={textureBrush}
+          frustemFactor={frustemFactor}
+        />
+      ))}
+    </group>
   );
 };
 
 const CarouselSlide = () => {
   const { width, height } = useWindowSize();
-  const frustemSize = 10;
   const { data } = useQuery({
     queryKey: ["films"],
     queryFn: async () =>
@@ -196,19 +201,21 @@ const CarouselSlide = () => {
   return (
     <Canvas style={{ width: "100%", height: "100vh" }}>
       <color args={[theme === "dark" ? "#000" : "#fff"]} attach="background" />
+      <axesHelper />
       <StatsGl className="z-[20] fixed" trackGPU />
+      <OrbitControls />
+      {/* <Enviroment /> */}
+
       <OrthographicCamera
         makeDefault
-        left={width / -2}
-        right={width / 2}
-        top={height / 2}
-        bottom={height / -2}
-        near={-1000}
-        far={1000}
+        left={(width * frustemFactor) / -2}
+        right={(width * frustemFactor) / 2}
+        top={(height * frustemFactor) / 2}
+        bottom={(height * frustemFactor) / -2}
+        near={-100}
+        far={100}
       />
-      <axesHelper />
       <Experience dataToShow={dataToShow} />
-      <OrbitControls />
     </Canvas>
   );
 };

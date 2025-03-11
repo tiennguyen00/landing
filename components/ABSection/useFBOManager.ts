@@ -13,7 +13,7 @@ const useFBOManager = (width: number, height: number, maxFBOs = 5) => {
   useEffect(() => {
     for (let i = 0; i < maxFBOs; i++) {
       fboPool.current.push(
-        new THREE.WebGLRenderTarget(width / 4, height / 4, {
+        new THREE.WebGLRenderTarget(width, height, {
           minFilter: THREE.LinearFilter,
           magFilter: THREE.LinearFilter,
           format: THREE.RGBAFormat,

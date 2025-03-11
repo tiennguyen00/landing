@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { useWindowSize } from "@/utils/useScree";
 import { useTexture } from "@react-three/drei";
 import { useRef, useMemo, useEffect } from "react";
@@ -14,6 +16,8 @@ const CarouselItem = ({
   fboManager,
   isActive,
   setActiveItem,
+  textureBrush,
+  frustemFactor,
   ...rest
 }: {
   index: number;
@@ -24,6 +28,8 @@ const CarouselItem = ({
   fboManager: ReturnType<typeof useFBOManager>;
   isActive: boolean;
   setActiveItem: (index: number, active: boolean) => void;
+  textureBrush: THREE.Texture;
+  frustemFactor: number;
 } & THREE.MeshProps) => {
   // const scale = useAspect(texture.image.width, texture.image.height, 1);
   const { width, height } = useWindowSize();
@@ -36,7 +42,6 @@ const CarouselItem = ({
   const prevMouse = useRef(new THREE.Vector2());
   const currentWave = useRef(0);
   const meshes = useRef<THREE.Mesh[]>([]);
-  const textureBrush = useTexture("/img/brush.png");
   const fboScene = useRef(new THREE.Scene());
 
   // Using for tracking when the last mesh is invisible
@@ -67,7 +72,7 @@ const CarouselItem = ({
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(30, 30, 1, 1), m);
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5, 1, 1), m);
       mesh.rotation.z = Math.random() * Math.PI * 2;
       mesh.visible = false;
       fboScene.current.add(mesh);
@@ -81,13 +86,13 @@ const CarouselItem = ({
     mesh.visible = true;
     mesh.position.x = x;
     mesh.position.y = y;
-    mesh.scale.x = mesh.scale.y = 2;
+    mesh.scale.x = mesh.scale.y = 1;
     mesh.material.opacity = 0.5;
   };
   const trackMousePos = () => {
     if (
-      Math.abs(mouse.current.x - prevMouse.current.x) < 5 &&
-      Math.abs(mouse.current.y - prevMouse.current.y) < 5
+      Math.abs(mouse.current.x - prevMouse.current.x) < 0.01 &&
+      Math.abs(mouse.current.y - prevMouse.current.y) < 0.01
     ) {
       // currentMouse.current = mouse.current.x;
     } else {
@@ -102,7 +107,7 @@ const CarouselItem = ({
       if (mesh.visible) {
         mesh.rotation.z += 0.02;
         mesh.material.opacity *= 0.98;
-        mesh.scale.x = (isClicked.current ? 1.05 : 0.999) * mesh.scale.x + 0.25;
+        mesh.scale.x = (isClicked.current ? 1.05 : 0.998) * mesh.scale.x + 0.25;
         mesh.scale.y = mesh.scale.x;
         if (mesh.material.opacity < 0.002) {
           mesh.visible = false;
@@ -157,8 +162,8 @@ const CarouselItem = ({
       onPointerMove={(e) => {
         const x = e.uv.x - 0.5;
         const y = e.uv.y - 0.5;
-        mouse.current.x = x * width;
-        mouse.current.y = y * height;
+        mouse.current.x = x * width * frustemFactor;
+        mouse.current.y = y * height * frustemFactor;
       }}
       onPointerLeave={() => {
         isHovering.current = false;
