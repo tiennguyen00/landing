@@ -83,3 +83,14 @@ Inspired by the timeless works of Studio Ghibli
 </p>
 
 ![Footer Image](/public//img/haku.webp)
+
+<!--
+  position: position of each vertex in the local space itself:
+   Example: Imagine your spaceship model is made in Blender or Maya. Every part of the spaceship has a position relative to itself, like the nose being at (0,0,1) and the tail at (0,0,-1).
+  modelMatrix: transforms the object’s local position into the real world:
+   If your spaceship starts at (0,0,0) but you move it to (10,5,-2) in the game, the modelMatrix is what does this
+  projectionMatrix - “How the camera sees the object”:
+   Imagine looking at your spaceship from far away. It looks small, right?
+   Now, if you zoom in, it looks bigger.
+   That’s the projectionMatrix controlling perspective.
+ -->

@@ -200,11 +200,11 @@ const CarouselSlide = () => {
 
   return (
     <Canvas style={{ width: "100%", height: "100vh" }}>
-      <color args={[theme === "dark" ? "#000" : "#fff"]} attach="background" />
+      <color args={["#05233C"]} attach="background" />
       <axesHelper />
       <StatsGl className="z-[20] fixed" trackGPU />
       <OrbitControls />
-      {/* <Enviroment /> */}
+      <Enviroment />
 
       <OrthographicCamera
         makeDefault
