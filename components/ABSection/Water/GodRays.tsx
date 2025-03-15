@@ -7,7 +7,11 @@ import { useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTexture } from "@react-three/drei";
 const GodRays = () => {
-  const { viewport } = useThree();
+  const [viewport, camera] = useThree((state) => [
+    state.viewport,
+    state.camera,
+  ]);
+  console.log("viewport", viewport.getCurrentViewport(camera, [0, 0, 0]));
   const texture = useTexture("/img/noise-texture.png");
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
