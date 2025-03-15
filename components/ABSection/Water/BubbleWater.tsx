@@ -2,22 +2,20 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Create a simple bubble texture programmatically
 const createBubbleTexture = () => {
-  const size = 64;
+  const size = 32;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d");
 
-  // Clear with transparent background
   ctx.clearRect(0, 0, size, size);
 
-  // Create a radial gradient for the bubble
   const gradient = ctx.createRadialGradient(
     size / 2,
     size / 2,
@@ -55,6 +53,7 @@ const createBubbleTexture = () => {
 
 const BubbleWater = () => {
   const sprites = useRef([]);
+  const prevDragX = useRef(0);
   const { viewport } = useThree();
 
   // Create programmatic bubble texture instead of loading from file
@@ -65,7 +64,6 @@ const BubbleWater = () => {
     return new THREE.SpriteMaterial({
       map: bubbleTexture,
       transparent: true,
-      opacity: 0.65,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
@@ -92,6 +90,7 @@ const BubbleWater = () => {
           Math.random() * viewport.height - viewport.height / 2,
           z
         );
+        sprite.material.opacity = Math.random() * 0.8;
 
         // Bimodal distribution of bubble sizes
         let scale;
@@ -114,7 +113,7 @@ const BubbleWater = () => {
     };
 
     // Create several clusters across the scene
-    const clusterCount = 6;
+    const clusterCount = 5;
     for (let i = 0; i < clusterCount; i++) {
       const centerX = 0;
       const centerY = 0;
@@ -124,7 +123,7 @@ const BubbleWater = () => {
         centerX,
         centerY,
         centerZ,
-        Math.floor(5 + Math.random() * 5), // 10-20 bubbles per cluster
+        10,
         2 + Math.random() * 3 // 2-5 unit radius
       );
     }
@@ -132,7 +131,24 @@ const BubbleWater = () => {
     return sprites.current;
   }, [material]);
 
-  // Animation loop for bubbles
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - prevDragX.current;
+      const direction = Math.sign(deltaX);
+      prevDragX.current = e.clientX;
+
+      sprites.current.forEach((sprite) => {
+        sprite.position.x += direction * 0.01;
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
 
@@ -155,7 +171,7 @@ const BubbleWater = () => {
 
       // Subtle scale pulsing for natural movement
       const scalePulse = 0.98 + Math.sin(time + sprite.userData.wobble) * 0.05;
-      const currentScale = sprite.scale.x * scalePulse;
+      const currentScale = sprite.scale.x + scalePulse;
       // sprite.scale.set(currentScale, currentScale, 1);
     });
   });
