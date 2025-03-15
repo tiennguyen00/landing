@@ -137,13 +137,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
 
       if (
         direction.current > 0 &&
-        worldPosition.x > viewport.width * frustemFactor + threshold
+        worldPosition.x > width * frustemFactor + threshold
       ) {
         // Account for spacing when repositioning
         child.position.x -= totalWidth + spacing * (dataToShow?.length || 0);
       } else if (
         direction.current < 0 &&
-        worldPosition.x < -viewport.width * frustemFactor - threshold
+        worldPosition.x < -width * frustemFactor - threshold
       ) {
         // Account for spacing when repositioning
         child.position.x += totalWidth + spacing * (dataToShow?.length || 0);
@@ -199,20 +199,28 @@ const CarouselSlide = () => {
   const { theme } = useTheme();
 
   return (
-    <Canvas style={{ width: "100%", height: "100vh" }}>
+    <Canvas
+      style={{ width: "100%", height: "100vh" }}
+      gl={{
+        alpha: true,
+        antialias: true,
+      }}
+    >
       <color args={["#05233C"]} attach="background" />
       <StatsGl className="z-[20] fixed" trackGPU />
+      <axesHelper args={[5]} />
       <OrbitControls />
       <Enviroment />
 
       <OrthographicCamera
         makeDefault
-        left={(width * frustemFactor) / -2}
-        right={(width * frustemFactor) / 2}
-        top={(height * frustemFactor) / 2}
-        bottom={(height * frustemFactor) / -2}
-        near={-100}
-        far={100}
+        // left={(width * frustemFactor) / -2}
+        // right={(width * frustemFactor) / 2}
+        // top={(height * frustemFactor) / 2}
+        // bottom={(height * frustemFactor) / -2}
+        near={-50}
+        far={50}
+        zoom={120}
       />
       <Experience dataToShow={dataToShow} />
     </Canvas>

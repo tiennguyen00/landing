@@ -5,7 +5,7 @@ import Light from "./Light";
 const Enviroment = () => {
   return (
     <>
-      <Light />
+      {/* <Light /> */}
       <GodRays />
       <BubbleWater />
     </>

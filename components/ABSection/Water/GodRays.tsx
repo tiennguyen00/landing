@@ -11,7 +11,6 @@ const GodRays = () => {
     state.viewport,
     state.camera,
   ]);
-  console.log("viewport", viewport.getCurrentViewport(camera, [0, 0, 0]));
   const texture = useTexture("/img/noise-texture.png");
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
