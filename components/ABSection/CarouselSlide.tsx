@@ -12,9 +12,9 @@ import {
   useTexture,
   OrthographicCamera,
   StatsGl,
-  OrbitControls,
 } from "@react-three/drei";
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useEffect, useState, use } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useWindowSize } from "@/utils/useScree";
@@ -25,6 +25,7 @@ import Enviroment from "./Enviroment";
 const frustemFactor = 0.01;
 
 const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
+  const router = useRouter();
   const { width, height } = useWindowSize();
   const { viewport } = useThree();
   const groupRef = useRef<THREE.Group>(null);
@@ -108,6 +109,13 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
+    if (groupRef.current && groupRef.current.children.length > 0) {
+      groupRef.current.children.forEach((child, idx) => {
+        child.userData.id = idx;
+        child.material.transparent = true;
+      });
+    }
+
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -122,9 +130,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     uniforms.uTime.value += 0.001 * direction.current;
-    groupRef.current?.position.add(
-      new THREE.Vector3(direction.current * frustemFactor, 0, 0)
-    );
+    // groupRef.current?.position.add(
+    //   new THREE.Vector3(direction.current * frustemFactor, 0, 0)
+    // );
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
@@ -158,27 +166,91 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       }
     }
   });
+  const camera = useThree((state) => state.camera);
 
   const textureBrush = useTexture("/img/brush.png");
 
   return (
     <group position-x={-6.5} ref={groupRef}>
-      {dataToShow?.map((i, idx) => (
-        <CarouselItem
-          key={i.id}
-          itemRefs={itemRefs.current}
-          index={idx}
-          data={i}
-          position-x={idx * (itemWidth + 0.1)}
-          itemWidth={itemWidth}
-          uniforms={uniforms}
-          fboManager={fboManager}
-          isActive={!!activeItems[idx]}
-          setActiveItem={setActiveItem}
-          textureBrush={textureBrush}
-          frustemFactor={frustemFactor}
-        />
-      ))}
+      {dataToShow?.map((i, idx) => {
+        return (
+          <CarouselItem
+            key={i.id}
+            itemRefs={itemRefs.current}
+            index={idx}
+            data={i}
+            position-x={idx * (itemWidth + 0.1)}
+            itemWidth={itemWidth}
+            uniforms={uniforms}
+            fboManager={fboManager}
+            isActive={!!activeItems[idx]}
+            setActiveItem={setActiveItem}
+            textureBrush={textureBrush}
+            frustemFactor={frustemFactor}
+            onClick={() => {
+              const duration = 2;
+              const clickedMeshIndex = groupRef.current?.children.find(
+                (m) => m.userData.id === idx
+              );
+              const viewportHeight = height * frustemFactor;
+              const meshHeight = itemWidth * 1.5;
+              const scaleFactor = viewportHeight / meshHeight;
+              const tl = gsap.timeline({
+                onComplete: () => {
+                  // router.push(`/${i.id}`);
+                },
+              });
+
+              // groupRef.current.children.forEach((m) => {
+              //   if (m.userData.id !== idx) {
+              //     console.log(m);
+              //     gsap.to(m, {
+              //       opacity: 0,
+              //       duration: 1,
+              //       ease: "power2.out",
+              //     });
+              //     if (m.material) {
+              //       gsap.to(m.material, {
+              //         opacity: 0,
+              //         duration: duration * 0.5,
+              //         ease: "power2.out",
+              //       });
+              //     }
+              //   }
+              // });
+
+              tl.to(clickedMeshIndex.scale, {
+                x: clickedMeshIndex.scale.x * scaleFactor * 0.85, // Slightly smaller to ensure no overflow
+                y: clickedMeshIndex.scale.y * scaleFactor * 0.85,
+                z: clickedMeshIndex.scale.z,
+                duration: duration * 0.8,
+                ease: "power2.out",
+              });
+
+              // Center in viewport
+              // tl.to(
+              //   groupRef.current.position,
+              //   {
+              //     x: 0,
+              //     y: 0,
+              //     duration: duration * 0.8,
+              //     ease: "power2.out",
+              //   },
+              //   0
+              // );
+              tl.to(
+                clickedMeshIndex.position,
+                {
+                  z: 1,
+                  duration: duration * 0.8,
+                  ease: "power2.out",
+                },
+                0
+              );
+            }}
+          />
+        );
+      })}
     </group>
   );
 };
@@ -209,7 +281,6 @@ const CarouselSlide = () => {
       <color args={["#05233C"]} attach="background" />
       <StatsGl className="z-[20] fixed" trackGPU />
       {/* <axesHelper args={[5]} /> */}
-      <OrbitControls />
       <Enviroment />
 
       <OrthographicCamera

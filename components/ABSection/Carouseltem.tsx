@@ -6,6 +6,7 @@ import { useRef, useMemo, useEffect } from "react";
 import { fragmentShader, vertexShader } from "./shader";
 import { useFBOManager } from "./useFBOManager";
 import * as THREE from "three";
+import gsap from "gsap";
 
 const CarouselItem = ({
   index,
@@ -155,6 +156,7 @@ const CarouselItem = ({
 
   return (
     <mesh
+      {...rest}
       onPointerEnter={() => {
         isHovering.current = true;
         setActiveItem(index, true);
@@ -168,20 +170,24 @@ const CarouselItem = ({
       onPointerLeave={() => {
         isHovering.current = false;
       }}
-      onClick={() => {
+      onClick={(e) => {
         if (idTimeout.current) clearTimeout(idTimeout.current);
         isClicked.current = true;
+
+        rest.onClick?.();
+
+        // Reset isClicked after animation
         idTimeout.current = setTimeout(() => {
           isClicked.current = false;
-        }, 2000);
+        }, duration * 1000);
       }}
-      {...rest}
     >
       <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />
       <shaderMaterial
         fragmentShader={fragmentShader}
         vertexShader={vertexShader}
         uniforms={uniform}
+        transparent={true}
       />
     </mesh>
   );
