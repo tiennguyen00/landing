@@ -179,7 +179,7 @@ const CarouselItem = ({
         // Reset isClicked after animation
         idTimeout.current = setTimeout(() => {
           isClicked.current = false;
-        }, duration * 1000);
+        }, 3 * 1000);
       }}
     >
       <planeGeometry args={[itemWidth, itemWidth * 1.5, 15, 15]} />

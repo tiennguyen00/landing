@@ -172,7 +172,8 @@ const BubbleWater = () => {
       // Subtle scale pulsing for natural movement
       const scalePulse = 0.98 + Math.sin(time + sprite.userData.wobble) * 0.05;
       const currentScale = sprite.scale.x + scalePulse;
-      // sprite.scale.set(currentScale, currentScale, 1);
+      // sprite.scale.x *= Math.max(scalePulse, 1);
+      // sprite.scale.y *= Math.max(scalePulse, 1);
     });
   });
 

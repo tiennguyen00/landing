@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, use } from "react";
 import gsap from "gsap";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const FilmId = ({ params }: { params: { filmId: string } }) => {
+const FilmId = (props: { params: Promise<{ filmId: string }> }) => {
+  const params = use(props.params);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [loaded, setLoaded] = useState(false);
   const router = useRouter();
 
   // Fetch film data
@@ -73,8 +73,6 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
       },
       "-=0.4" // Start content animation earlier
     );
-
-    setLoaded(true);
   }, [film, isLoading]);
 
   const handleBackClick = () => {
@@ -112,7 +110,6 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
             ref={imageRef}
             className="w-full h-[70vh] relative overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-70"></div>
             <Image
               src={film.movie_banner || film.image}
               alt={film.title}
@@ -123,7 +120,7 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
 
             <button
               onClick={handleBackClick}
-              className="absolute top-6 left-6 z-10 px-4 py-2 border border-white/40 hover:bg-white/10 rounded-full transition-all duration-300"
+              className="absolute top-6 left-6 z-10 px-4 py-2 border bg-black cursor-pointer border-white/40 hover:bg-black/40 rounded-full transition-all duration-300"
             >
               ← Back
             </button>
@@ -132,12 +129,14 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
           {/* Content section */}
           <div
             ref={contentRef}
-            className="container mx-auto px-6 py-10 -mt-20 relative z-10"
+            className="container mx-auto px-6 py-10 relative z-10"
           >
             <h1 className="text-5xl font-bold mb-4">{film.title}</h1>
             <h2 className="text-2xl text-gray-300 mb-8">
               {film.original_title}
             </h2>
+
+            <div className="w-full h-1 bg-white/10 mb-8" />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="md:col-span-2">
@@ -156,9 +155,6 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
                     Director: {film.director}
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-white/5 p-6 rounded-lg">
                 <h3 className="text-xl font-bold mb-4">Film Details</h3>
                 <div className="space-y-3">
                   <p>
@@ -170,6 +166,17 @@ const FilmId = ({ params }: { params: { filmId: string } }) => {
                     {film.rt_score}
                   </p>
                 </div>
+              </div>
+
+              <div className="border relative border-white/40 rounded-lg overflow-hidden">
+                <Image
+                  src={film.image}
+                  width={500}
+                  height={100}
+                  alt={film.title}
+                  layout="responsive"
+                  objectFit="cover"
+                />
               </div>
             </div>
           </div>

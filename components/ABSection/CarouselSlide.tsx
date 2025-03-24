@@ -130,9 +130,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
     });
 
     uniforms.uTime.value += 0.001 * direction.current;
-    // groupRef.current?.position.add(
-    //   new THREE.Vector3(direction.current * frustemFactor, 0, 0)
-    // );
+    groupRef.current?.position.add(
+      new THREE.Vector3(direction.current * frustemFactor, 0, 0)
+    );
 
     // Handle infinite loop
     const totalWidth = itemWidth * (dataToShow?.length || 0);
@@ -195,49 +195,50 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
               const viewportHeight = height * frustemFactor;
               const meshHeight = itemWidth * 1.5;
               const scaleFactor = viewportHeight / meshHeight;
+
+              // Method 1: Calculate item position using world coordinates
+              const itemWorldPosition = new THREE.Vector3();
+              clickedMeshIndex.getWorldPosition(itemWorldPosition);
+
+              // For orthographic camera, (0,0,0) is the viewport center in world space
+              const viewportCenter = new THREE.Vector3(0, 0, 0);
+
+              // Use the more reliable method (usually Method 1)
+              const translationX = viewportCenter.x - itemWorldPosition.x;
+              const translationY = viewportCenter.y - itemWorldPosition.y;
+
               const tl = gsap.timeline({
                 onComplete: () => {
-                  // router.push(`/${i.id}`);
+                  router.push(`/${i.id}`);
                 },
               });
 
-              // groupRef.current.children.forEach((m) => {
-              //   if (m.userData.id !== idx) {
-              //     console.log(m);
-              //     gsap.to(m, {
-              //       opacity: 0,
-              //       duration: 1,
-              //       ease: "power2.out",
-              //     });
-              //     if (m.material) {
-              //       gsap.to(m.material, {
-              //         opacity: 0,
-              //         duration: duration * 0.5,
-              //         ease: "power2.out",
-              //       });
-              //     }
-              //   }
-              // });
+              // Scale up the item
+              tl.to(
+                clickedMeshIndex.scale,
+                {
+                  x: clickedMeshIndex.scale.x * scaleFactor * 0.85,
+                  y: clickedMeshIndex.scale.y * scaleFactor * 0.85,
+                  z: clickedMeshIndex.scale.z,
+                  duration: duration * 0.8,
+                  ease: "power2.out",
+                },
+                0
+              );
 
-              tl.to(clickedMeshIndex.scale, {
-                x: clickedMeshIndex.scale.x * scaleFactor * 0.85, // Slightly smaller to ensure no overflow
-                y: clickedMeshIndex.scale.y * scaleFactor * 0.85,
-                z: clickedMeshIndex.scale.z,
-                duration: duration * 0.8,
-                ease: "power2.out",
-              });
+              // Move the group to center the clicked item
+              tl.to(
+                groupRef.current.position,
+                {
+                  x: groupRef.current.position.x + translationX,
+                  y: groupRef.current.position.y + translationY,
+                  duration: duration * 0.8,
+                  ease: "power2.out",
+                },
+                0 // Run at the same time as scaling
+              );
 
-              // Center in viewport
-              // tl.to(
-              //   groupRef.current.position,
-              //   {
-              //     x: 0,
-              //     y: 0,
-              //     duration: duration * 0.8,
-              //     ease: "power2.out",
-              //   },
-              //   0
-              // );
+              // Bring item forward
               tl.to(
                 clickedMeshIndex.position,
                 {
