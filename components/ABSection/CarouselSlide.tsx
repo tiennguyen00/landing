@@ -192,12 +192,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
               const clickedMeshIndex = groupRef.current?.children.find(
                 (m) => m.userData.id === idx
               );
-              console.log("clickedMeshIndex: ", clickedMeshIndex);
-              console.log(
-                "groupRef.current?.children: ",
-                groupRef.current?.children
-              );
-              console.log("index: ", idx);
+
               if (!clickedMeshIndex) return;
               const viewportHeight = height * frustemFactor;
               const meshHeight = itemWidth * 1.5;
