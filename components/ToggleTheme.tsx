@@ -1,4 +1,7 @@
+import { useTheme } from "@/app/providers";
+
 const TogleTheme = ({ onChange }: { onChange: () => void }) => {
+  const { theme } = useTheme();
   return (
     <>
       <svg className="hidden" display="none">
@@ -71,6 +74,7 @@ const TogleTheme = ({ onChange }: { onChange: () => void }) => {
           role="switch"
           name="dark"
           onChange={onChange}
+          defaultChecked={theme === "dark"}
         />
         <svg
           className="switch__icon"

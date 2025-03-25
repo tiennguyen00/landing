@@ -1,19 +1,26 @@
 "use client";
-import ABSection from "./ABSection";
 import Footer from "./Footer";
 import HeroSection from "./HeroSection";
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useRef, useState } from "react";
-import Scene from "./Scene";
 import Navbar from "./Navbar";
 import SidePag from "./SidePag";
+import { useSlideStore } from "@/app/store";
+import SceneContainer from "./Scene";
+import ABSection from "./ABSection";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+
+export interface StateSection {
+  tl: gsap.core.Timeline | null;
+  progress: "start" | "end";
+}
 
 const MainPage = () => {
   const curSlide = useRef<number | null>(null);
   const next = useRef(0);
-  const listening = useRef(false);
+  const listening = useRef(true);
   const direction = useRef("down");
   const touch = useRef({
     startX: 0,
@@ -30,8 +37,24 @@ const MainPage = () => {
     ease: "slow.inOut",
     duration: duration,
   };
+  const slideTo = useRef<((index: number) => void) | null>(null);
 
   const [isSliding, setIsSliding] = useState<number | undefined>(undefined);
+  const stateFirstSectionRef = useRef<StateSection>({
+    tl: null,
+    progress: "start",
+  });
+  const { setIndex, setDirection, setListening } = useSlideStore();
+  const params = useSearchParams();
+  const sectionIndex = params.get("section");
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const updateSectionParam = (sectionIndex: number) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("section", sectionIndex.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -42,16 +65,75 @@ const MainPage = () => {
     gsap.set(outerWrappers, { yPercent: 100 });
     gsap.set(innerWrappers, { yPercent: -100 });
 
+    // Initialize with the correct section if provided in URL
+    const initialSection = parseInt(sectionIndex ?? "0");
+    if (!isNaN(initialSection) && initialSection > 0) {
+      next.current = initialSection;
+      curSlide.current = initialSection;
+
+      sections.forEach((section, idx) => {
+        gsap.set(section as Element, {
+          autoAlpha: idx === initialSection ? 1 : 0,
+          zIndex: idx === initialSection ? 5 : 0,
+        });
+      });
+
+      // Set initial positions for the target section
+      gsap.set(
+        [
+          outerWrappers[initialSection],
+          innerWrappers[initialSection],
+        ] as Element[],
+        {
+          yPercent: 0,
+        }
+      );
+      gsap.set(wrapper[initialSection] as Element, { yPercent: 0 });
+
+      setIndex(initialSection);
+    } else {
+      slideIn();
+    }
+
     function handleDirection() {
       listening.current = false;
+      setListening(false);
 
       if (direction.current === "down") {
+        // check if the first section is at the start
+        if (
+          stateFirstSectionRef.current.progress === "start" &&
+          (curSlide.current === 0 || curSlide.current === null)
+        ) {
+          stateFirstSectionRef.current.tl?.play().then(() => {
+            stateFirstSectionRef.current.progress = "end";
+            listening.current = true;
+            setListening(true);
+          });
+          return;
+        }
+        // ==========================================
+
         next.current = (curSlide.current ?? 0) + 1;
         if (next.current >= sections.length) next.current = 0;
         slideIn();
       }
 
       if (direction.current === "up") {
+        // check if the first section is at the end
+        if (
+          stateFirstSectionRef.current.progress === "end" &&
+          (curSlide.current === 0 || curSlide.current === null)
+        ) {
+          stateFirstSectionRef.current.tl?.reverse().then(() => {
+            stateFirstSectionRef.current.progress = "start";
+            listening.current = true;
+            setListening(true);
+          });
+          return;
+        }
+        // ==========================================
+
         next.current = (curSlide.current ?? 0) - 1;
         if (next.current < 0) next.current = sections.length - 1;
         slideOut();
@@ -61,6 +143,8 @@ const MainPage = () => {
     function handleWheel(e: WheelEvent) {
       if (!listening.current) return;
       direction.current = e.deltaY < 0 ? "up" : "down";
+      console.log("wheel event", direction.current);
+      setDirection(direction.current);
       handleDirection();
     }
 
@@ -80,22 +164,30 @@ const MainPage = () => {
       const t = e.changedTouches[0];
       touch.current.dx = t.pageX - touch.current.startX;
       touch.current.dy = t.pageY - touch.current.startY;
-      if (touch.current.dy > 10) direction.current = "up";
-      if (touch.current.dy < -10) direction.current = "down";
+      if (touch.current.dy <= 50 && touch.current.dy >= -50) return;
+      if (touch.current.dy > 50) direction.current = "up";
+      if (touch.current.dy < -50) direction.current = "down";
+      setDirection(direction.current);
       handleDirection();
     }
     // Handle the event
     window.addEventListener("wheel", handleWheel);
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchmove", handleTouchMove);
-    window.addEventListener("touchend", handleTouchEnd);
+    // window.addEventListener("touchstart", handleTouchStart);
+    // window.addEventListener("touchmove", handleTouchMove);
+    // window.addEventListener("touchend", handleTouchEnd);
 
     function slideIn() {
       setIsSliding(next.current);
       if (curSlide.current !== null)
-        gsap.set(sections[curSlide.current], { zIndex: 0 });
+        gsap.set(sections[curSlide.current], {
+          zIndex: 0,
+          autoAlpha: 0,
+        });
 
-      gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
+      gsap.set(sections[next.current], {
+        autoAlpha: 1,
+        zIndex: 5,
+      });
       gsap.set(wrapper[next.current] as any, { yPercent: 0 });
 
       const tl = gsap
@@ -104,8 +196,13 @@ const MainPage = () => {
           defaults: tlDefaults,
           onComplete: () => {
             listening.current = true;
+            setListening(true);
             curSlide.current = next.current;
             setIsSliding(undefined);
+            setIndex(curSlide.current);
+          },
+          onStart: () => {
+            updateSectionParam(next.current);
           },
         })
         .to(
@@ -138,11 +235,34 @@ const MainPage = () => {
       tl.play(0);
     }
 
+    // Slide to section
+    slideTo.current = (index: number) => {
+      if (!listening.current || index === curSlide.current) return;
+      if (index < 0 || index >= sections.length) return;
+
+      direction.current = index > (curSlide.current ?? 0) ? "down" : "up";
+      setDirection(direction.current);
+
+      next.current = index;
+      updateSectionParam(index);
+      if (direction.current === "down") {
+        slideIn();
+      } else {
+        slideOut();
+      }
+    };
+
     // Slides a section out on scroll up
     function slideOut() {
       setIsSliding(next.current);
-      gsap.set(sections[curSlide.current ?? 0], { zIndex: 0 });
-      gsap.set(sections[next.current], { autoAlpha: 1, zIndex: 1 });
+      gsap.set(sections[curSlide.current ?? 0], {
+        zIndex: 0,
+        autoAlpha: 0,
+      });
+      gsap.set(sections[next.current], {
+        autoAlpha: 1,
+        zIndex: 1,
+      });
 
       gsap.set([outerWrappers[next.current], innerWrappers[next.current]], {
         yPercent: 0,
@@ -154,8 +274,13 @@ const MainPage = () => {
           defaults: tlDefaults,
           onComplete: () => {
             listening.current = true;
+            setListening(true);
             curSlide.current = next.current;
             setIsSliding(undefined);
+            setIndex(curSlide.current);
+          },
+          onStart: () => {
+            updateSectionParam(next.current);
           },
         })
         .to(outerWrappers[curSlide.current ?? 0] as any, { yPercent: 100 }, 0)
@@ -166,26 +291,29 @@ const MainPage = () => {
       // .add(revealSectionHeading(), ">-1")
     }
 
-    slideIn();
-
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
+      // window.removeEventListener("touchstart", handleTouchStart);
+      // window.removeEventListener("touchmove", handleTouchMove);
+      // window.removeEventListener("touchend", handleTouchEnd);
     };
   });
 
   return (
     <>
       <Navbar />
-      <SidePag isSliding={isSliding} quantity={4} duration={duration} />
+      <SidePag
+        isSliding={isSliding}
+        quantity={3}
+        duration={duration}
+        slideTo={slideTo.current}
+      />
 
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
             <div className="wrapper">
-              <HeroSection />
+              <HeroSection stateFirstSectionRef={stateFirstSectionRef} />
             </div>
           </div>
         </div>
@@ -199,15 +327,9 @@ const MainPage = () => {
           </div>
         </div>
       </section>
-      <section>
-        <div className="outer bg-white dark:bg-black">
-          <div className="inner">
-            <div className="wrapper" id="canvas-container">
-              <Scene />
-            </div>
-          </div>
-        </div>
-      </section>
+
+      {/* <SceneContainer /> */}
+
       <section>
         <div className="outer bg-white dark:bg-black">
           <div className="inner">
