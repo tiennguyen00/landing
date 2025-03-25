@@ -168,11 +168,11 @@ const FilmId = (props: { params: Promise<{ filmId: string }> }) => {
                 </div>
               </div>
 
-              <div className="border relative border-white/40 rounded-lg overflow-hidden">
+              <div className="border relative h-fit border-white/40 rounded-lg overflow-hidden">
                 <Image
                   src={film.image}
-                  width={500}
-                  height={100}
+                  width={200}
+                  height={350}
                   alt={film.title}
                   layout="responsive"
                   objectFit="cover"

@@ -21,11 +21,13 @@ const useFBOManager = (width: number, height: number, maxFBOs = 5) => {
       );
     }
 
+    const clear = activeItems.current;
+
     return () => {
       // Clean up FBOs on unmount
       fboPool.current.forEach((fbo) => fbo.dispose());
       fboPool.current = [];
-      activeItems.current.clear();
+      clear.clear();
     };
   }, [width, height]);
 

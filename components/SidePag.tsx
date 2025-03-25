@@ -49,11 +49,13 @@ const SidePag = ({ isSliding, quantity, duration, slideTo }: SidePagProps) => {
             <img
               src="/img/chibli-totoro.gif"
               className="h-[48px] aspect-11/8 z-20 w-auto"
+              alt="totoro"
             />
           ) : (
             <img
               src="/img/chibli-totoro.png"
               className="w-[32px] aspect-23/32 z-20 h-auto"
+              alt="totoro"
             />
           )}
         </div>

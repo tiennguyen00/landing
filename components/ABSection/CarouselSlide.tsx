@@ -188,7 +188,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
             textureBrush={textureBrush}
             frustemFactor={frustemFactor}
             onClick={() => {
-              const duration = 2;
+              const duration = 1;
               const clickedMeshIndex = groupRef.current?.children.find(
                 (m) => m.userData.id === idx
               );

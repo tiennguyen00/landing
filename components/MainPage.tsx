@@ -10,6 +10,7 @@ import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
 import SceneContainer from "./Scene";
 import ABSection from "./ABSection";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -19,7 +20,7 @@ export interface StateSection {
 const MainPage = () => {
   const curSlide = useRef<number | null>(null);
   const next = useRef(0);
-  const listening = useRef(false);
+  const listening = useRef(true);
   const direction = useRef("down");
   const touch = useRef({
     startX: 0,
@@ -44,6 +45,16 @@ const MainPage = () => {
     progress: "start",
   });
   const { setIndex, setDirection, setListening } = useSlideStore();
+  const params = useSearchParams();
+  const sectionIndex = params.get("section");
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const updateSectionParam = (sectionIndex: number) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("section", sectionIndex.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   useGSAP(() => {
     const sections = document.querySelectorAll("section");
@@ -53,6 +64,36 @@ const MainPage = () => {
 
     gsap.set(outerWrappers, { yPercent: 100 });
     gsap.set(innerWrappers, { yPercent: -100 });
+
+    // Initialize with the correct section if provided in URL
+    const initialSection = parseInt(sectionIndex ?? "0");
+    if (!isNaN(initialSection) && initialSection > 0) {
+      next.current = initialSection;
+      curSlide.current = initialSection;
+
+      sections.forEach((section, idx) => {
+        gsap.set(section as Element, {
+          autoAlpha: idx === initialSection ? 1 : 0,
+          zIndex: idx === initialSection ? 5 : 0,
+        });
+      });
+
+      // Set initial positions for the target section
+      gsap.set(
+        [
+          outerWrappers[initialSection],
+          innerWrappers[initialSection],
+        ] as Element[],
+        {
+          yPercent: 0,
+        }
+      );
+      gsap.set(wrapper[initialSection] as Element, { yPercent: 0 });
+
+      setIndex(initialSection);
+    } else {
+      slideIn();
+    }
 
     function handleDirection() {
       listening.current = false;
@@ -102,6 +143,7 @@ const MainPage = () => {
     function handleWheel(e: WheelEvent) {
       if (!listening.current) return;
       direction.current = e.deltaY < 0 ? "up" : "down";
+      console.log("wheel event", direction.current);
       setDirection(direction.current);
       handleDirection();
     }
@@ -159,6 +201,9 @@ const MainPage = () => {
             setIsSliding(undefined);
             setIndex(curSlide.current);
           },
+          onStart: () => {
+            updateSectionParam(next.current);
+          },
         })
         .to(
           [outerWrappers[next.current], innerWrappers[next.current]],
@@ -199,6 +244,7 @@ const MainPage = () => {
       setDirection(direction.current);
 
       next.current = index;
+      updateSectionParam(index);
       if (direction.current === "down") {
         slideIn();
       } else {
@@ -233,6 +279,9 @@ const MainPage = () => {
             setIsSliding(undefined);
             setIndex(curSlide.current);
           },
+          onStart: () => {
+            updateSectionParam(next.current);
+          },
         })
         .to(outerWrappers[curSlide.current ?? 0] as any, { yPercent: 100 }, 0)
         .to(innerWrappers[curSlide.current ?? 0] as any, { yPercent: -100 }, 0)
@@ -241,8 +290,6 @@ const MainPage = () => {
         .set(wrapper[curSlide.current ?? 0] as any, { yPercent: 0 });
       // .add(revealSectionHeading(), ">-1")
     }
-
-    slideIn();
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
