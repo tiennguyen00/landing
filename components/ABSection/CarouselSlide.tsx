@@ -192,12 +192,20 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
               const clickedMeshIndex = groupRef.current?.children.find(
                 (m) => m.userData.id === idx
               );
+              console.log("clickedMeshIndex: ", clickedMeshIndex);
+              console.log(
+                "groupRef.current?.children: ",
+                groupRef.current?.children
+              );
+              console.log("index: ", idx);
+              if (!clickedMeshIndex) return;
               const viewportHeight = height * frustemFactor;
               const meshHeight = itemWidth * 1.5;
               const scaleFactor = viewportHeight / meshHeight;
 
               // Method 1: Calculate item position using world coordinates
               const itemWorldPosition = new THREE.Vector3();
+
               clickedMeshIndex.getWorldPosition(itemWorldPosition);
 
               // For orthographic camera, (0,0,0) is the viewport center in world space
