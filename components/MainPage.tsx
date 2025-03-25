@@ -4,13 +4,12 @@ import HeroSection from "./HeroSection";
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import SidePag from "./SidePag";
 import { useSlideStore } from "@/app/store";
 import SceneContainer from "./Scene";
 import ABSection from "./ABSection";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export interface StateSection {
   tl: gsap.core.Timeline | null;
@@ -45,15 +44,23 @@ const MainPage = () => {
     progress: "start",
   });
   const { setIndex, setDirection, setListening } = useSlideStore();
-  const params = useSearchParams();
-  const sectionIndex = params.get("section");
-  const router = useRouter();
-  const pathname = usePathname();
+
+  // Get initial section from URL
+  const [sectionIndex, setSectionIndex] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("section");
+    }
+    return null;
+  });
 
   const updateSectionParam = (sectionIndex: number) => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("section", sectionIndex.toString());
-    router.push(`${pathname}?${params.toString()}`);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("section", sectionIndex.toString());
+      window.history.pushState({}, "", url);
+      setSectionIndex(sectionIndex.toString());
+    }
   };
 
   useGSAP(() => {

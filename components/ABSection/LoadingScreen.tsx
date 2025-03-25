@@ -12,22 +12,23 @@ interface LoadingScreenProps {
 
 const LoadingScreen = ({ total }: LoadingScreenProps) => {
   const { theme } = useTheme();
+  const assetQuantity = 22;
   const { width } = useWindowSize();
   const [isComplete, setIsComplete] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const loaderIconRef = useRef<HTMLDivElement>(null);
 
-  const progress = (total / 21) * 100;
+  const progress = (total / assetQuantity) * 100;
 
   useGSAP(() => {
     if (width < 560) {
-      if (total >= 21) setIsComplete(true);
+      if (total >= assetQuantity) setIsComplete(true);
     } else {
       const animationConfig = {
         duration: 0.5,
         ease: "power2.out",
         onComplete: () => {
-          if (total >= 21) {
+          if (total >= assetQuantity) {
             setIsComplete(true);
           }
         },
