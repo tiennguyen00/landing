@@ -193,6 +193,9 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
                 (m) => m.userData.id === idx
               );
 
+              console.log("clickedMeshIndex: ", clickedMeshIndex);
+              console.log("groupRef.current: ", groupRef.current);
+
               if (!clickedMeshIndex) return;
               const viewportHeight = height * frustemFactor;
               const meshHeight = itemWidth * 1.5;
@@ -212,6 +215,7 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
 
               const tl = gsap.timeline({
                 onComplete: () => {
+                  console.log("onComplete: ", i.id);
                   router.push(`/${i.id}`);
                 },
               });
