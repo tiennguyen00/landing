@@ -100,21 +100,18 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
       uniforms.uDelta.value.x = Math.min(deltaX, 0.85);
     };
 
+    let timeout: NodeJS.Timeout;
     const handleMouseUp = () => {
       isDragging.current = false;
-      dragState.current = "idle";
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        dragState.current = "idle";
+      }, 10);
     };
 
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-
-    if (groupRef.current && groupRef.current.children.length > 0) {
-      groupRef.current.children.forEach((child, idx) => {
-        child.userData.id = idx;
-        child.material.transparent = true;
-      });
-    }
 
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
@@ -188,6 +185,8 @@ const Experience = ({ dataToShow }: { dataToShow: Film[] }) => {
             textureBrush={textureBrush}
             frustemFactor={frustemFactor}
             onClick={() => {
+              console.log("dragState.current: ", dragState.current);
+              if (dragState.current === "dragging") return;
               const duration = 1;
               const clickedMeshIndex = groupRef.current?.children.find(
                 (m) => m.userData.id === idx

@@ -64,6 +64,8 @@ const CarouselItem = ({
     };
   }, [texture]);
 
+  const meshRef = useRef<THREE.Mesh>(null);
+
   useEffect(() => {
     for (let i = 0; i < max; i++) {
       const m = new THREE.MeshBasicMaterial({
@@ -80,6 +82,13 @@ const CarouselItem = ({
       meshes.current.push(mesh);
     }
   }, []);
+
+  // Initialize userData when mesh is created
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.userData.id = index;
+    }
+  }, [index]);
 
   const setNewWave = (x, y, index) => {
     const mesh = meshes.current[index];
@@ -156,6 +165,7 @@ const CarouselItem = ({
 
   return (
     <mesh
+      ref={meshRef}
       {...rest}
       onPointerEnter={() => {
         isHovering.current = true;
@@ -173,7 +183,6 @@ const CarouselItem = ({
       onClick={(e) => {
         if (idTimeout.current) clearTimeout(idTimeout.current);
         isClicked.current = true;
-
         rest.onClick?.();
 
         // Reset isClicked after animation
