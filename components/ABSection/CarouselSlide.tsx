@@ -286,7 +286,7 @@ const CarouselSlide = () => {
       }}
     >
       <color args={["#05233C"]} attach="background" />
-      <StatsGl className="z-[20] fixed" trackGPU />
+      {/* <StatsGl className="z-[20] fixed" trackGPU /> */}
       {/* <axesHelper args={[5]} /> */}
       <Enviroment />
 
